@@ -5,10 +5,9 @@ import {
   oduQuestions,
   nonOduQuestions,
   subQuestions,
-  API_KEY,
 } from '../../constants';
 import mime from 'mime';
-
+import crashlytics from '@react-native-firebase/crashlytics';
 import {
   authorizationHeader,
   getRequest,
@@ -141,10 +140,16 @@ export const homeModel = {
           authorizationHeader(),
           null,
           (_err, response) => {
-            dispatch.homeModel.setServiceRegions(response.data);
+            console.log('errrrrr', _err);
+            if (!_err) {
+              dispatch.homeModel.setServiceRegions(response.data);
+            } else {
+              crashlytics().log(`saveSubscriberDetails  ${_err}`);
+            }
           },
         );
       } catch (error) {
+        crashlytics().log(`getServiceRegions  ${error}`);
         console.log(error);
       }
     },
@@ -160,6 +165,7 @@ export const homeModel = {
           },
         );
       } catch (error) {
+        crashlytics().log(`saveSubscriberDetails  ${error}`);
         console.log(error);
       }
     },
@@ -246,7 +252,8 @@ export const homeModel = {
           },
         );
       } catch (error) {
-        alert('', JSON.stringify(error));
+        dispatch.authModel.setIsLoading(false);
+        crashlytics().log(`saveQuestionDetails  ${error}`);
         console.log(error);
       }
     },

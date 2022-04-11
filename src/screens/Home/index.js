@@ -19,6 +19,7 @@ import {API_KEY, screenTypes} from '../../constants';
 import {ARROW_BACK} from '../../constants/assets';
 import {getLanguage} from '../../localization';
 import styles from './styles';
+
 let watchID = '';
 const Home = ({
   setCurrentLayout,
@@ -38,7 +39,6 @@ const Home = ({
   } = screenTypes;
 
   useEffect(() => {
-    // console.log('sdfsdf', getConvertedDate(new Date()));
     getServiceRegions();
   }, [getServiceRegions]);
 
@@ -50,8 +50,6 @@ const Home = ({
       .then(json => {
         var location = json.results[0].formatted_address;
         setAddress(location);
-        console.log('locationnnn', location);
-        // Alert.alert('sdf', location);
       })
       .catch(error => console.warn(error));
   };
@@ -86,6 +84,7 @@ const Home = ({
     requestLocationPermission();
 
     () => Geolocation.clearWatch(watchID);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setAddress]);
 
   const onBackPressed = () => {

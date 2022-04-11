@@ -1,6 +1,8 @@
 import NetInfo from '@react-native-community/netinfo';
 import {API_SUCCESS, API_URL} from '../constants';
-
+import {Alert} from 'react-native';
+import crashlytics from '@react-native-firebase/crashlytics';
+import {getState} from '../redux';
 const API_CONNECTION_TIMEOUT = 10000;
 const SERVER_ERROR_KEY = 500;
 /**
@@ -25,61 +27,68 @@ const invokeNetworkRequest = async (
   params,
   completion,
 ) => {
-  NetInfo.fetch().then(async net_state => {
-    if (net_state.isConnected) {
-      try {
-        console.log('REQUEST', {url, method, headers, params});
-        let response = null;
-        if (method !== 'GET') {
-          response = await fetch(url, {
-            method: method,
-            headers: headers,
-            body: params,
-            disableAllSecurity: true,
-            timeoutInterval: 60000,
-          });
-        } else {
-          response = await fetch(url, {
-            method: method,
-            headers: headers,
-            disableAllSecurity: true,
-            timeoutInterval: API_CONNECTION_TIMEOUT,
-          });
-        }
+  const {
+    authModel: {isConnected},
+  } = getState();
 
-        if (response) {
-          console.log('RESPONSE', response);
-          if (response.status === 204) {
-            completion(null, '');
-            return '';
-          } else {
-            let jsonResponse = await response.json();
-            completion && completion(null, jsonResponse);
-            return jsonResponse;
-          }
-        }
-      } catch (err) {
-        try {
-          // console.log('ERROR', err);
-          if (err.status === 401) {
-          } else {
-            const error = err.json ? await err.json() : err;
-            const {message} = error;
-            if (!message) {
-              // store.dispatch(setLoading(false)); // Hides loader for failure case
-            }
-          }
-        } catch (error) {
-          const exception = {
-            key: 500,
-            message: '',
-          };
-          completion && completion(exception, null);
+  if (isConnected) {
+    try {
+      console.log('REQUEST', {url, method, headers, params});
+      let response = null;
+      if (method !== 'GET') {
+        response = await fetch(url, {
+          method: method,
+          headers: headers,
+          body: params,
+          disableAllSecurity: true,
+          timeoutInterval: 60000,
+        });
+      } else {
+        response = await fetch(url, {
+          method: method,
+          headers: headers,
+          disableAllSecurity: true,
+          timeoutInterval: API_CONNECTION_TIMEOUT,
+        });
+      }
+
+      if (response) {
+        console.log('RESPONSE', response);
+        if (response.status === 204) {
+          completion(null, '');
+          return '';
+        } else {
+          let jsonResponse = await response.json();
+          completion && completion(null, jsonResponse);
+          return jsonResponse;
         }
       }
-    } else {
+    } catch (err) {
+      try {
+        crashlytics().log(`API_ERROR  ${err}`);
+        if (err.status === 401) {
+        } else {
+          const error = err.json ? await err.json() : err;
+          const {message} = error;
+        }
+      } catch (error) {
+        crashlytics().log(`API_ERROR  ${error}`);
+        const exception = {
+          key: 500,
+          message: 'No Internet Connection',
+        };
+        completion && completion(exception, null);
+      }
     }
-  });
+  } else {
+    crashlytics().log("API_ERROR 'No Internet Connection'");
+    Alert.alert('', 'No Internet Connection');
+    const exception = {
+      key: 500,
+      message: 'No Internet Connection',
+    };
+    completion && completion(exception, null);
+  }
 };
 
 /**
@@ -187,13 +196,20 @@ const multipartFileUploadRequest = async (
         }
       } catch (err) {
         console.log('Error', err);
-        let exception = '';
-
-        return exception;
+        const exception = {
+          key: 500,
+          message: 'No Internet Connection',
+        };
+        completion && completion(exception, null);
       }
     } else {
-      const exception = '';
-      return exception;
+      crashlytics().log('API_ERROR No Internet Connection(Media)');
+      Alert.alert('', 'No Internet Connection');
+      const exception = {
+        key: 500,
+        message: 'No Internet Connection',
+      };
+      completion && completion(exception, null);
     }
   });
 };
