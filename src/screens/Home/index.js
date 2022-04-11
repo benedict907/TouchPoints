@@ -76,7 +76,6 @@ const Home = ({
       const {
         coords: {latitude, longitude},
       } = position;
-      console.log('sdfsfs', {position});
       getAddress(latitude, longitude);
       // this.setState({ lastPosition });
     });
@@ -86,6 +85,7 @@ const Home = ({
     requestLocationPermission();
 
     () => Geolocation.clearWatch(watchID);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setAddress]);
 
   const onBackPressed = () => {

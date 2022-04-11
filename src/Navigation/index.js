@@ -7,13 +7,22 @@ import AppNavigation from './AppNavigation';
 import styles from './styles';
 const navigationRef = createRef();
 
-const Navigation = ({setIsConnected, isConnected}) => {
+const Navigation = ({
+  setIsConnected,
+  serviceRegions,
+  getServiceRegions,
+  isConnected,
+}) => {
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      setIsConnected(state.isConnected);
+      setIsConnected(state.isInternetReachable);
+
+      if (state.isInternetReachable && serviceRegions.length === 0) {
+        getServiceRegions();
+      }
     });
     return unsubscribe;
-  }, [setIsConnected, isConnected]);
+  }, [setIsConnected, isConnected, serviceRegions, getServiceRegions]);
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
@@ -30,15 +39,19 @@ const Navigation = ({setIsConnected, isConnected}) => {
 
 const mapStateToProps = ({
   authModel: {userData, isConnected},
-  homeModel: {isSearchListOpen},
+  homeModel: {serviceRegions},
 }) => ({
   userData,
   isConnected,
-  isSearchListOpen,
+  serviceRegions,
 });
 
-const mapDispatchToProps = ({authModel: {setIsConnected}}) => ({
+const mapDispatchToProps = ({
+  authModel: {setIsConnected},
+  homeModel: {getServiceRegions},
+}) => ({
   setIsConnected,
+  getServiceRegions,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Navigation);

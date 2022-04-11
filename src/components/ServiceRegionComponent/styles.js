@@ -59,7 +59,7 @@ export default StyleSheet.create({
   nextButtonStyle: {
     alignSelf: 'flex-end',
     marginRight: pixelSizeHorizontal(20),
-    marginTop: pixelSizeVertical(20),
+    marginVertical: pixelSizeVertical(20),
   },
   titleStyle: {
     color: COLOR_WHITE,
