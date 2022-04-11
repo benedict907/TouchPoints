@@ -1,0 +1,236 @@
+import NetInfo from '@react-native-community/netinfo';
+import {API_SUCCESS, API_URL} from '../constants';
+
+const API_CONNECTION_TIMEOUT = 10000;
+const SERVER_ERROR_KEY = 500;
+/**
+ * Invokes a network request to backend and return with a response or error based on
+ * the request method.
+ *
+ * TODO:// Passing the public key in a format `sha256/<key>` to handle
+ * public key pinning recommanded by `react-native-ssl-pinning`. Once done remove `TODO://`
+ *
+ * @param {*} url api URL to be hit
+ * @param {*} method request method (one of `GET`, `POST`, or `PUT`)
+ * @param {*} headers request headers
+ * @param {*} params data to be send to api
+ * @param {*} completion completion handler which will invoke either success or failure
+ *                       and retrun the response or error to the called function
+ */
+
+const invokeNetworkRequest = async (
+  url,
+  method,
+  headers,
+  params,
+  completion,
+) => {
+  NetInfo.fetch().then(async net_state => {
+    if (net_state.isConnected) {
+      try {
+        console.log('REQUEST', {url, method, headers, params});
+        let response = null;
+        if (method !== 'GET') {
+          response = await fetch(url, {
+            method: method,
+            headers: headers,
+            body: params,
+            disableAllSecurity: true,
+            timeoutInterval: 60000,
+          });
+        } else {
+          response = await fetch(url, {
+            method: method,
+            headers: headers,
+            disableAllSecurity: true,
+            timeoutInterval: API_CONNECTION_TIMEOUT,
+          });
+        }
+
+        if (response) {
+          console.log('RESPONSE', response);
+          if (response.status === 204) {
+            completion(null, '');
+            return '';
+          } else {
+            let jsonResponse = await response.json();
+            completion && completion(null, jsonResponse);
+            return jsonResponse;
+          }
+        }
+      } catch (err) {
+        try {
+          // console.log('ERROR', err);
+          if (err.status === 401) {
+          } else {
+            const error = err.json ? await err.json() : err;
+            const {message} = error;
+            if (!message) {
+              // store.dispatch(setLoading(false)); // Hides loader for failure case
+            }
+          }
+        } catch (error) {
+          const exception = {
+            key: 500,
+            message: '',
+          };
+          completion && completion(exception, null);
+        }
+      }
+    } else {
+    }
+  });
+};
+
+/**
+ * Invokes a `GET` request and fetches response from api and return to caller function
+ * via `completion` function
+ * @param {*} endPoint API end point to be hit
+ * @param {*} headers request headers for API request
+ * @param {*} params data to be send via API
+ * @param {*} completion completion handler which will invoke either success or failure
+ *                       and retrun the response or error to the called function
+ */
+const getRequest = (endPoint, headers, params, completion) => {
+  const url = API_URL + endPoint;
+  return invokeNetworkRequest(url, 'GET', headers, params, completion);
+};
+
+/**
+ * Invokes a `POST` request and fetches response from api and return to caller function
+ * via `completion` function
+ * @param {*} endPoint API end point to be hit
+ * @param {*} headers request headers for API request
+ * @param {*} params data to be send via API
+ * @param {*} completion completion handler which will invoke either success or failure
+ *                       and retrun the response or error to the called function
+ */
+const postRequest = (endPoint, headers, params, completion) => {
+  const url = API_URL + endPoint;
+  return invokeNetworkRequest(url, 'POST', headers, params, completion);
+};
+
+/**
+ * Invokes a `PUT` request and fetches response from api and return to caller function
+ * via `completion` function
+ * @param {*} endPoint API end point to be hit
+ * @param {*} headers request headers for API request
+ * @param {*} params data to be send via API
+ * @param {*} completion completion handler which will invoke either success or failure
+ *                       and retrun the response or error to the called function
+ */
+const putRequest = (endPoint, headers, params, completion) => {
+  const url = API_URL + endPoint;
+  return invokeNetworkRequest(url, 'PUT', headers, params, completion);
+};
+
+const deleteRequest = (endPoint, headers, params, completion) => {
+  const url = API_URL + endPoint;
+  return invokeNetworkRequest(url, 'DELETE', headers, params, completion);
+};
+
+/**
+ * fetch from ssl pinning liabrary has some known issues with file upload on ios,
+ *  Thats's why creating this function which uses normal react native fetch,  to upload files.
+ * Invokes a `MULTIPORT POST` request and fetches response from api and return to caller function
+ * via `completion` function
+ * @param {*} endPoint API end point to be hit
+ * @param {*} formData data to be send via API
+ * @param {*} completion completion handler which will invoke either success or failure
+ *                       and retrun the response or error to the called function
+ */
+
+/**
+ * fetch from ssl pinning liabrary has some known issues with file upload on ios,
+ *  Thats's why creating this function which uses normal react native fetch,  to upload files.
+ * Invokes a `MULTIPART POST` request and fetches response from api and return to caller function
+ * via `completion` function
+ * @param {*} formData data to be send via API
+ * @param {*} endPoint API end point to be hit
+ * @param {*} completion completion handler which will invoke either success or failure
+ *                       and retrun the response or error to the called function
+ */
+
+const multipartFileUploadRequest = async (
+  methodType,
+  formData,
+  endPoint,
+  completion,
+) => {
+  NetInfo.fetch().then(async net_state => {
+    if (net_state.isConnected) {
+      try {
+        console.log('REQUEST', formData);
+        const apiUrl = API_URL + endPoint;
+        const response = await fetch(apiUrl, {
+          method: methodType,
+          body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        if (response) {
+          // let jsonRespose = await response.json();
+          console.log('RESPONSE', response);
+          // console.log('sdfs', response);
+          if (response.status === API_SUCCESS) {
+            let jsonResponse = await response.json();
+            completion && completion(null, jsonResponse);
+          } else {
+            completion && completion(response, null);
+          }
+          return response;
+        } else {
+          // const exception = serverException('');
+          // completion && completion(exception, null);
+          // return exception;
+        }
+      } catch (err) {
+        console.log('Error', err);
+        let exception = '';
+
+        return exception;
+      }
+    } else {
+      const exception = '';
+      return exception;
+    }
+  });
+};
+
+/**
+ * Creates an `Authorization` header object using the `token` parameter
+ * @param {*} token user token to be used for `Authorization`
+ */
+const authorizationHeader = () => ({
+  'Content-Type': 'application/json',
+  Accept: '*/*',
+  'Access-Control-Allow-Origin': '*',
+});
+
+const authorizationHeaderForBackgroundApis = token => ({
+  Authorization: 'Bearer ' + token,
+});
+
+const getRequestAsync = (endPoint, headers, params) =>
+  new Promise((resolve, reject) =>
+    getRequest(endPoint, headers, params, (err, response) => {
+      if (err) {
+        reject(err);
+      } else if (response) {
+        resolve(response);
+      }
+    }),
+  );
+
+export {
+  getRequest,
+  getRequestAsync,
+  postRequest,
+  putRequest,
+  deleteRequest,
+  authorizationHeader,
+  invokeNetworkRequest,
+  authorizationHeaderForBackgroundApis,
+  multipartFileUploadRequest,
+};
