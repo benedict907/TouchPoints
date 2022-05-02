@@ -7,7 +7,7 @@ const compressImage = (image, callback) => {
     image.width,
     image.height,
     'JPEG',
-    50,
+    95,
     0,
     null,
   )
