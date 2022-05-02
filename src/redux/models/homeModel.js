@@ -94,6 +94,7 @@ export const homeModel = {
               image,
               capturedImage: '',
               isQuestion,
+              isSubQuestion: true,
             };
           },
         ),

@@ -27,6 +27,7 @@ const Home = ({
   getServiceRegions,
   resetData,
   setAddress,
+  subscriberId,
 }) => {
   const {
     language,
@@ -154,7 +155,7 @@ const Home = ({
         return (
           <View style={{alignItems: 'center'}}>
             <Text style={styles.headerText}>
-              {getLanguage('thankyouForSubmission')}
+              {getLanguage('thankyouForSubmission')} {subscriberId}
             </Text>
             <CustomButton
               title={getLanguage('goHome')}
