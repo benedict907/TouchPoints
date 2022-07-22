@@ -1,10 +1,13 @@
-import API from '../../utils/API';
+import API, {authorizationHeader, postRequest} from '../../utils/API';
 import {API_SUCCESS, API_FAILURE} from '../../constants';
-import {Alert} from 'react-native';
 
 export const authModel = {
   state: {userData: null, token: null, isConnected: true, isLoading: false},
   reducers: {
+    setUserData: (state, payload) => {
+      return {...state, userData: payload};
+    },
+
     setIsConnected: (state, payload) => {
       return {...state, isConnected: payload};
     },
@@ -14,70 +17,22 @@ export const authModel = {
     },
   },
   effects: dispatch => ({
-    sendOtp: async requestBody => {
+    login: async ({mobile, password, callback}) => {
       try {
-        const response = await API.post('/sendOtp', requestBody);
-        const {
-          data: {data = null, status = null, errors},
-        } = response;
-        if (status === API_SUCCESS) {
-          return {status, data};
-          // dispatch.authModel.setUserData(data);
-        } else if (status === API_FAILURE) {
-          return {status, errors};
-        }
-        return response;
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    verifyOtp: async requestBody => {
-      try {
-        const response = await API.post('/verifyOtp', requestBody);
-        const {
-          data: {data = null, status = null, message, errors},
-        } = response;
-        if (status === '1') {
-          dispatch.authModel.setUserData(data);
-        } else if (status === '0') {
-        }
-        return {status: data.action_status, data, errors};
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    resentOtp: async requestBody => {
-      try {
-        const response = await API.post('/reSentOtp', requestBody);
-        const {
-          data: {
-            data: {message, resent_option},
-            status = null,
-            errors,
+        await postRequest(
+          '/login',
+          authorizationHeader(),
+          JSON.stringify({mobile, password}),
+          (_err, response) => {
+            const {response_code, data, errors} = response;
+            if (response_code === '1') {
+              dispatch.authModel.setUserData(data);
+              callback('success');
+            } else {
+              callback('failed', errors[0]);
+            }
           },
-        } = response;
-        if (status === '1') {
-          Alert.alert('', message);
-          // dispatch.authModel.setUserData(data);
-        } else if (status === '0') {
-        }
-        // return {status: data.action_status, data, errors};
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    setProfile: async requestBody => {
-      try {
-        const response = await API.post('/user/setProfile', requestBody);
-        const {
-          data: {data = null, status = null, errors = ''},
-        } = response;
-        if (status === '1') {
-          dispatch.authModel.setUserProfile(data);
-          return {status};
-        } else if (status === '0') {
-          return {status, message: errors};
-        }
+        );
       } catch (error) {
         console.log(error);
       }

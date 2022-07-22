@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import withInternetCheckComponent from '../../../HOC/withInternetCheckComponent';
 import Loader from '../Loader';
 import styles from './styles';
-const InternetCheckButton = withInternetCheckComponent(TouchableOpacity);
+// const InternetCheckButton = withInternetCheckComponent(TouchableOpacity);
 const CustomButton = ({
   title,
   onPress,
@@ -13,9 +13,9 @@ const CustomButton = ({
   showLoader = false,
 }) => {
   return !isLoading ? (
-    <InternetCheckButton onPress={onPress} style={[styles.container, style]}>
+    <TouchableOpacity onPress={onPress} style={[styles.container, style]}>
       <Text style={styles.textStyle}>{title}</Text>
-    </InternetCheckButton>
+    </TouchableOpacity>
   ) : showLoader ? (
     <View style={[styles.loaderContainer, style]}>
       <Loader />

@@ -38,7 +38,6 @@ const Home = ({
   } = screenTypes;
 
   useEffect(() => {
-    // console.log('sdfsdf', getConvertedDate(new Date()));
     getServiceRegions();
   }, [getServiceRegions]);
 

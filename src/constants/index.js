@@ -49,6 +49,7 @@ export const profileList = [
 
 export const BUTTON_PRESS_DELAY = 200;
 
+export const LOGIN_SCREEN = 'LOGIN_SCREEN';
 export const HOME_STACK = 'HOME';
 export const SUBSCRIBER_ID_SCREEN = 'SUBSCRIBER_ID_SCREEN';
 export const IMAGE_PREVIEW_SCREEN = 'IMAGE_PREVIEW_SCREEN';
@@ -60,7 +61,7 @@ export const screenTypes = {
   questions: 'QUESTIONS_SCREEN',
   thankyouLayout: 'THANK_YOU',
 };
-export const API_URL = 'http://project0nc.s4touchpoints.com/api';
+export const API_URL = 'https://dev.s4touchpoints.com/api';
 
 export const LanguageConstants = {en: 'English', tn: 'Tamil'};
 export const API_SUCCESS = 200;

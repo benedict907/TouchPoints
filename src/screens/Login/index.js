@@ -1,0 +1,89 @@
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  PermissionsAndroid,
+  Alert,
+} from 'react-native';
+
+import StyledTextInput from '../../components/common/StyledTextInput';
+import {connect} from 'react-redux';
+
+import styles from './styles';
+import {PLACEHOLDER_COLOR} from '../../constants/colors';
+import CustomButton from '../../components/common/CustomButton';
+import {HOME_STACK} from '../../constants';
+const LoginScreen = ({navigation, login}) => {
+  const [mobile, setMobile] = useState('');
+  const [password, setPassword] = useState('');
+  return (
+    <View style={styles.mainContainer}>
+      {/* <Text style={styles.headerText}>Login</Text> */}
+      <StyledTextInput
+        onChangeText={setMobile}
+        keyboardType="numeric"
+        value={mobile}
+        maxLength={10}
+        placeholderTextColor={PLACEHOLDER_COLOR}
+        placeholder={'Enter phone number'}
+        containerStyle={styles.containerStyle}
+        textInputStyle={styles.textInputContainerStyle}
+      />
+      <StyledTextInput
+        onChangeText={setPassword}
+        keyboardType="numeric"
+        value={password}
+        maxLength={10}
+        secureTextEntry={true}
+        placeholderTextColor={PLACEHOLDER_COLOR}
+        placeholder={'Enter password'}
+        containerStyle={styles.containerStyle}
+        textInputStyle={styles.textInputContainerStyle}
+      />
+      <CustomButton
+        title={'Login'}
+        onPress={() => {
+          login({
+            mobile,
+            password,
+            callback: (status, error) => {
+              if (status === 'success') {
+                navigation.navigate(HOME_STACK);
+              } else {
+                Alert.alert('', error);
+              }
+            },
+          });
+        }}
+      />
+    </View>
+  );
+};
+
+const mapStateToProps = ({
+  homeModel: {currentLayout, appLanguage, subscriberId},
+}) => ({
+  appLanguage,
+  subscriberId,
+  currentLayout,
+});
+
+const mapDispatchToProps = ({
+  authModel: {
+    login,
+    setCurrentLayout,
+    getServiceRegions,
+    resetData,
+    setAddress,
+  },
+}) => ({
+  login,
+  setCurrentLayout,
+  getServiceRegions,
+  resetData,
+  setAddress,
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen);
