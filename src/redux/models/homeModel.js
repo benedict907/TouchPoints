@@ -5,8 +5,9 @@ import {
   oduQuestions,
   nonOduQuestions,
   subQuestions,
-  API_KEY,
 } from '../../constants';
+import {Alert, Linking} from 'react-native';
+import {getVersion} from 'react-native-device-info';
 import mime from 'mime';
 
 import {
@@ -179,6 +180,37 @@ export const homeModel = {
     },
   },
   effects: dispatch => ({
+    getCurrentVersion: async requestBody => {
+      try {
+        await getRequest(
+          '/getApiVersion',
+          authorizationHeader(),
+          null,
+          (_err, response) => {
+            const currentVersion = getVersion();
+            if (currentVersion !== response.data.current_app_version) {
+              Alert.alert(
+                '',
+                'Please update app to the newest version',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      Linking.openURL(
+                        'https://play.google.com/store/apps/details?id=com.questionsapp',
+                      );
+                    },
+                  },
+                ],
+                {cancelable: false},
+              );
+            }
+          },
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    },
     getServiceRegions: async requestBody => {
       try {
         await getRequest(

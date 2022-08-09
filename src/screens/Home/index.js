@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -19,12 +19,14 @@ import {API_KEY, screenTypes} from '../../constants';
 import {ARROW_BACK} from '../../constants/assets';
 import {getLanguage} from '../../localization';
 import styles from './styles';
+import {useFocusEffect} from '@react-navigation/native';
 let watchID = '';
 const Home = ({
   setCurrentLayout,
   setAppLanguage,
   currentLayout,
   getServiceRegions,
+  getCurrentVersion,
   resetData,
   setAddress,
   subscriberId,
@@ -39,9 +41,16 @@ const Home = ({
   } = screenTypes;
 
   useEffect(() => {
-    // console.log('sdfsdf', getConvertedDate(new Date()));
     getServiceRegions();
   }, [getServiceRegions]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (currentLayout === language) {
+        getCurrentVersion();
+      }
+    }, [currentLayout, getCurrentVersion, language]),
+  );
 
   const getAddress = (latitude, longitude) => {
     Geocoder.from({
@@ -51,8 +60,6 @@ const Home = ({
       .then(json => {
         var location = json.results[0].formatted_address;
         setAddress(location);
-        console.log('locationnnn', location);
-        // Alert.alert('sdf', location);
       })
       .catch(error => console.warn(error));
   };
@@ -204,6 +211,7 @@ const mapDispatchToProps = ({
     setAppLanguage,
     setCurrentLayout,
     getServiceRegions,
+    getCurrentVersion,
     resetData,
     setAddress,
   },
@@ -211,6 +219,7 @@ const mapDispatchToProps = ({
   setAppLanguage,
   setCurrentLayout,
   getServiceRegions,
+  getCurrentVersion,
   resetData,
   setAddress,
 });
