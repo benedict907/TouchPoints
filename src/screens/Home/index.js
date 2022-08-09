@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -19,14 +19,17 @@ import {API_KEY, screenTypes} from '../../constants';
 import {ARROW_BACK} from '../../constants/assets';
 import {getLanguage} from '../../localization';
 import styles from './styles';
+import {useFocusEffect} from '@react-navigation/native';
 let watchID = '';
 const Home = ({
   setCurrentLayout,
   setAppLanguage,
   currentLayout,
   getServiceRegions,
+  getCurrentVersion,
   resetData,
   setAddress,
+  subscriberId,
 }) => {
   const {
     language,
@@ -41,6 +44,14 @@ const Home = ({
     getServiceRegions();
   }, [getServiceRegions]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (currentLayout === language) {
+        getCurrentVersion();
+      }
+    }, [currentLayout, getCurrentVersion, language]),
+  );
+
   const getAddress = (latitude, longitude) => {
     Geocoder.from({
       latitude: latitude,
@@ -49,8 +60,6 @@ const Home = ({
       .then(json => {
         var location = json.results[0].formatted_address;
         setAddress(location);
-        console.log('locationnnn', location);
-        // Alert.alert('sdf', location);
       })
       .catch(error => console.warn(error));
   };
@@ -75,7 +84,6 @@ const Home = ({
       const {
         coords: {latitude, longitude},
       } = position;
-      console.log('sdfsfs', {position});
       getAddress(latitude, longitude);
       // this.setState({ lastPosition });
     });
@@ -85,6 +93,7 @@ const Home = ({
     requestLocationPermission();
 
     () => Geolocation.clearWatch(watchID);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setAddress]);
 
   const onBackPressed = () => {
@@ -153,7 +162,7 @@ const Home = ({
         return (
           <View style={{alignItems: 'center'}}>
             <Text style={styles.headerText}>
-              {getLanguage('thankyouForSubmission')}
+              {getLanguage('thankyouForSubmission')} {subscriberId}
             </Text>
             <CustomButton
               title={getLanguage('goHome')}
@@ -202,6 +211,7 @@ const mapDispatchToProps = ({
     setAppLanguage,
     setCurrentLayout,
     getServiceRegions,
+    getCurrentVersion,
     resetData,
     setAddress,
   },
@@ -209,6 +219,7 @@ const mapDispatchToProps = ({
   setAppLanguage,
   setCurrentLayout,
   getServiceRegions,
+  getCurrentVersion,
   resetData,
   setAddress,
 });

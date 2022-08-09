@@ -93,6 +93,7 @@ const QuestionComponent = ({
             <CustomButton
               title={getLanguage('noText')}
               onPress={() => {
+                saveQuestionDetails({isNoPressed: true});
                 setCurrentLayout(thankyouLayout);
               }}
             />

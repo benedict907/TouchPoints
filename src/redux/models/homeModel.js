@@ -5,8 +5,9 @@ import {
   oduQuestions,
   nonOduQuestions,
   subQuestions,
-  API_KEY,
 } from '../../constants';
+import {Alert, Linking} from 'react-native';
+import {getVersion} from 'react-native-device-info';
 import mime from 'mime';
 
 import {
@@ -85,10 +86,55 @@ export const homeModel = {
         currentLayout: language,
         selectedQuestionArray: [],
         selectedQuestion: 0,
-        sub_questions: subQuestions,
-        mdu_questions: mduQuestions,
-        odu_questions: oduQuestions,
-        non_odu_questions: nonOduQuestions,
+        sub_questions: subQuestions.map(
+          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
+            return {
+              id,
+              questionHeader,
+              questionHeaderTamil,
+              image,
+              capturedImage: '',
+              isQuestion,
+              isSubQuestion: true,
+            };
+          },
+        ),
+        mdu_questions: mduQuestions.map(
+          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
+            return {
+              id,
+              questionHeader,
+              questionHeaderTamil,
+              image,
+              capturedImage: '',
+              isQuestion,
+            };
+          },
+        ),
+        odu_questions: oduQuestions.map(
+          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
+            return {
+              id,
+              questionHeader,
+              questionHeaderTamil,
+              image,
+              capturedImage: '',
+              isQuestion,
+            };
+          },
+        ),
+        non_odu_questions: nonOduQuestions.map(
+          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
+            return {
+              id,
+              questionHeader,
+              questionHeaderTamil,
+              image,
+              capturedImage: '',
+              isQuestion,
+            };
+          },
+        ),
       };
     },
 
@@ -134,6 +180,37 @@ export const homeModel = {
     },
   },
   effects: dispatch => ({
+    getCurrentVersion: async requestBody => {
+      try {
+        await getRequest(
+          '/getApiVersion',
+          authorizationHeader(),
+          null,
+          (_err, response) => {
+            const currentVersion = getVersion();
+            if (currentVersion !== response.data.current_app_version) {
+              Alert.alert(
+                '',
+                'Please update app to the newest version',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      Linking.openURL(
+                        'https://play.google.com/store/apps/details?id=com.questionsapp',
+                      );
+                    },
+                  },
+                ],
+                {cancelable: false},
+              );
+            }
+          },
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    },
     getServiceRegions: async requestBody => {
       try {
         await getRequest(
@@ -167,7 +244,7 @@ export const homeModel = {
     saveQuestionDetails: async (requestBody, models) => {
       try {
         dispatch.authModel.setIsLoading(true);
-        const {lastQuestion, subArray} = requestBody || {};
+        const {lastQuestion, subArray, isNoPressed} = requestBody || {};
         const {
           homeModel: {
             subscriberId,
@@ -205,13 +282,13 @@ export const homeModel = {
         formData.append(timeKey, getConvertedDate(new Date()));
 
         if (subArray?.length > 0) {
+          formData.append(`${key}_option_value`, 1);
           subArray.map(item => {
             let temp_key = '';
             Object.keys(item).forEach(key_val => {
               temp_key = key_val;
             });
             var filename = item[temp_key].replace(/^.*[\\\/]/, '');
-
             formData.append(temp_key, {
               name: filename,
               type: mime.getType(item[temp_key]),
@@ -221,11 +298,13 @@ export const homeModel = {
         } else {
           var filename = capturedImage.replace(/^.*[\\\/]/, '');
 
-          formData.append(key, {
-            name: filename,
-            type: mime.getType(capturedImage),
-            uri: capturedImage,
-          });
+          isNoPressed !== undefined
+            ? formData.append(`${key}_option_value`, 0)
+            : formData.append(key, {
+                name: filename,
+                type: mime.getType(capturedImage),
+                uri: capturedImage,
+              });
         }
         await multipartFileUploadRequest(
           'POST',
@@ -233,7 +312,6 @@ export const homeModel = {
           '/saveQuestions',
           (error, response) => {
             if (response) {
-              console.log('adfs', response);
               dispatch.authModel.setIsLoading(false);
               if (selectedQuestion + 1 === questionLength) {
                 dispatch.homeModel.setCurrentLayout(thankyouLayout);

@@ -1,17 +1,24 @@
-import React from 'react';
-import {Keyboard, Alert} from 'react-native';
-import {connect} from 'react-redux';
+import React, {useEffect, useState} from 'react';
+import {Alert} from 'react-native';
+import store from '../redux';
 
 const withInternetCheckComponent = WrappedComponent => {
   const CheckInternetConnection = props => {
-    const {isOfflineButton, onPress, dismissKeyboardOnPress, isConnected} =
-      props;
+    const {isOfflineButton, onPress} = props;
+    const [isConnected, setIsConnected] = useState(true);
+
+    useEffect(() => {
+      const unsubscribe = store.subscribe(() =>
+        setIsConnected(store.getState().authModel.isConnected),
+      );
+      return () => unsubscribe();
+    }, []);
+
     const onPressButton = () => {
       if (!isOfflineButton) {
         if (isConnected) {
           onPress && onPress();
         } else {
-          dismissKeyboardOnPress && Keyboard.dismiss();
           Alert.alert('', 'No Internet Connection');
         }
       } else {
@@ -25,8 +32,4 @@ const withInternetCheckComponent = WrappedComponent => {
   return CheckInternetConnection;
 };
 
-const mapStateToProps = ({authModel: {isConnected}}) => ({
-  isConnected,
-});
-
-export default connect(mapStateToProps, null)(withInternetCheckComponent);
+export default withInternetCheckComponent;
