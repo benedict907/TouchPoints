@@ -7,7 +7,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 const loading = createLoading({name: 'loading'});
 const persistPlugin = createRematchPersist({
   key: 'primary',
-  whitelist: ['authModel', 'homeModel'],
   storage: AsyncStorage,
 });
 

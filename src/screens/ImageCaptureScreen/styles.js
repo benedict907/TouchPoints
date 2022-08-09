@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     width: widthPixel(40),
     alignSelf: 'center',
   },
-  cleseButtonContainer: {
+  closeButtonContainer: {
     height: heightPixel(50),
     width: widthPixel(50),
     borderRadius: widthPixel(25),

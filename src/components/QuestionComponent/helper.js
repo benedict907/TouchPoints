@@ -10,3 +10,13 @@ export const getKeyValue = ({customerType, id}) => {
       return `non_mdu_question14_${id}`;
   }
 };
+
+export const getKey = ({id, customerType}) => {
+  switch (customerType) {
+    case 'mdu_question':
+      return `mdu_question${id}`;
+    case 'odu_question':
+    case 'non_odu_question':
+      return `non_mdu_question${id}`;
+  }
+};

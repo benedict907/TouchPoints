@@ -1,5 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
 import {API_SUCCESS, API_URL} from '../constants';
+import {getState} from '../redux';
 
 const API_CONNECTION_TIMEOUT = 10000;
 const SERVER_ERROR_KEY = 500;
@@ -48,19 +49,19 @@ const invokeNetworkRequest = async (
         }
 
         if (response) {
-          console.log('RESPONSE', response);
           if (response.status === 204) {
             completion(null, '');
             return '';
           } else {
             let jsonResponse = await response.json();
+            console.log('RESPONSE', jsonResponse);
             completion && completion(null, jsonResponse);
             return jsonResponse;
           }
         }
       } catch (err) {
         try {
-          // console.log('ERROR', err);
+          console.log('ERROR', err);
           if (err.status === 401) {
           } else {
             const error = err.json ? await err.json() : err;
@@ -202,7 +203,8 @@ const multipartFileUploadRequest = async (
  * Creates an `Authorization` header object using the `token` parameter
  * @param {*} token user token to be used for `Authorization`
  */
-const authorizationHeader = () => ({
+const authorizationHeader = token => ({
+  Authorization: 'Bearer ' + token,
   'Content-Type': 'application/json',
   Accept: '*/*',
   'Access-Control-Allow-Origin': '*',
@@ -211,7 +213,15 @@ const authorizationHeader = () => ({
 const authorizationHeaderForBackgroundApis = token => ({
   Authorization: 'Bearer ' + token,
 });
+const getHeadersWithToken = (isLogout = false) => {
+  const {
+    authModel: {
+      userData: {access_token},
+    },
+  } = getState();
 
+  return authorizationHeader(access_token);
+};
 const getRequestAsync = (endPoint, headers, params) =>
   new Promise((resolve, reject) =>
     getRequest(endPoint, headers, params, (err, response) => {
@@ -228,6 +238,7 @@ export {
   getRequestAsync,
   postRequest,
   putRequest,
+  getHeadersWithToken,
   deleteRequest,
   authorizationHeader,
   invokeNetworkRequest,

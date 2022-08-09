@@ -6,14 +6,14 @@ import {
   HOME_STACK,
   IMAGE_PREVIEW_SCREEN,
   LOGIN_SCREEN,
-  NEW_REQUEST,
+  VIDEO_CAPTURE_SCREEN,
 } from '../constants';
 import ImageCaptureScreen from '../screens/ImageCaptureScreen';
 import {connect} from 'react-redux';
+import VideoCaptureScreen from '../screens/VideoCaptureScreen';
 
 const Stack = createStackNavigator();
 const AppNavigation = ({userData}) => {
-  console.log('sss', userData);
   return (
     // <SafeAreaView horizontal>
     <Stack.Navigator
@@ -27,6 +27,10 @@ const AppNavigation = ({userData}) => {
       <Stack.Screen
         name={IMAGE_PREVIEW_SCREEN}
         component={ImageCaptureScreen}
+      />
+      <Stack.Screen
+        name={VIDEO_CAPTURE_SCREEN}
+        component={VideoCaptureScreen}
       />
     </Stack.Navigator>
     // </SafeAreaView>

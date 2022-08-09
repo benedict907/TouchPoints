@@ -6,52 +6,27 @@ import CustomButton from '../common/CustomButton';
 import {onRadioButtonSelected} from './helper';
 import styles from './styles';
 
-const CustomerTypeComponent = ({
-  subscriberId,
-  userServiceRegion,
-  auditType,
-  appLanguage,
-  setCustomerType,
-  saveSubscriberDetails,
-  setSelectedQuestionsArray,
-  mdu_questions,
-  odu_questions,
-  non_odu_questions,
-}) => {
+const CustomerTypeComponent = ({setAuditType}) => {
   const [radioButtonValues, setRadioButtonValues] = useState([
     {
-      title: 'MDU',
+      title: 'Installer Audit',
       selected: true,
-      value: 'mdu_question',
-      api_value: 'mdu',
-      data: mdu_questions,
+      value: 1,
     },
     {
-      title: 'ODU',
+      title: 'Champion installer audit',
       selected: false,
-      value: 'odu_question',
-      api_value: 'odu',
-      data: odu_questions,
+      value: 2,
     },
     {
-      title: 'NON ODU',
+      title: 'ASM/CSM/Trainer Audit',
       selected: false,
-      value: 'non_odu_question',
-      api_value: 'non_odu',
-      data: non_odu_questions,
+      value: 3,
     },
   ]);
-  const validateSubscription = () => {
+  const selectAuditType = () => {
     let selectedButton = radioButtonValues.filter(item => item.selected);
-    setCustomerType(selectedButton[0].value);
-    setSelectedQuestionsArray(selectedButton[0].data);
-    saveSubscriberDetails({
-      subscriber_id: subscriberId,
-      page: 'question1',
-      customer_type: selectedButton[0].api_value,
-      language: appLanguage,
-      champion_audit: auditType,
-    });
+    setAuditType(selectedButton[0].value);
   };
 
   const RadioButton = ({item: {title, selected}, index}) => (
@@ -73,7 +48,7 @@ const CustomerTypeComponent = ({
 
   return (
     <>
-      <Text style={styles.headerText}>{getLanguage('selectCustomerType')}</Text>
+      <Text style={styles.headerText}>{getLanguage('selectAuditType')}</Text>
       {radioButtonValues.map((item, index) => (
         <RadioButton item={item} key={index} index={index} />
       ))}
@@ -81,42 +56,23 @@ const CustomerTypeComponent = ({
       <CustomButton
         title={getLanguage('nextText')}
         style={styles.nextButtonStyle}
-        onPress={() => validateSubscription()}
+        onPress={() => selectAuditType()}
       />
     </>
   );
 };
 
 const mapStateToProps = ({
-  homeModel: {
-    subscriberId,
-    userServiceRegion,
-    auditType,
-    appLanguage,
-    mdu_questions,
-    odu_questions,
-    non_odu_questions,
-  },
+  homeModel: {subscriberId, mdu_questions, odu_questions, non_odu_questions},
 }) => ({
   subscriberId,
-  userServiceRegion,
-  auditType,
-  appLanguage,
   mdu_questions,
   odu_questions,
   non_odu_questions,
 });
 
-const mapDispatchToProps = ({
-  homeModel: {
-    setCustomerType,
-    saveSubscriberDetails,
-    setSelectedQuestionsArray,
-  },
-}) => ({
-  setCustomerType,
-  saveSubscriberDetails,
-  setSelectedQuestionsArray,
+const mapDispatchToProps = ({homeModel: {setAuditType}}) => ({
+  setAuditType,
 });
 
 export default connect(

@@ -4,7 +4,6 @@ import {RNCamera} from 'react-native-camera';
 import {changeCameraType, captureImage, toggleFlash} from './helpers';
 import styles from './styles';
 import {
-  ARROW_BACK,
   CAMERA as Camera,
   CLOSE as Close,
   ROTATE as Rotate,
@@ -95,7 +94,7 @@ const ImageCaptureScreen = ({navigation, updateImage}) => {
       <View style={styles.bottomContainer}>
         <CancelButton
           onPress={navigation.goBack}
-          style={styles.cleseButtonContainer}>
+          style={styles.closeButtonContainer}>
           <Image source={Close} style={styles.imageStyle} />
         </CancelButton>
         <CameraButton
@@ -109,7 +108,7 @@ const ImageCaptureScreen = ({navigation, updateImage}) => {
           onPress={() => {
             changeCameraType(cameraType, setcameraType);
           }}
-          style={styles.cleseButtonContainer}>
+          style={styles.closeButtonContainer}>
           <Image source={Rotate} style={styles.imageStyle} />
         </TouchableOpacity>
       </View>

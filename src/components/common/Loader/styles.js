@@ -5,8 +5,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    height:
-      Platform.OS === 'android' ? height + StatusBar.currentHeight : height,
+    // height:
+    //   Platform.OS === 'android' ? height + StatusBar.currentHeight : height,
   },
   screenContainerSmall: {
     alignItems: 'center',

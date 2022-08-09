@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, View, TouchableOpacity} from 'react-native';
 import {connect} from 'react-redux';
-import withInternetCheckComponent from '../../../HOC/withInternetCheckComponent';
+import {getLanguage} from '../../../localization';
 import Loader from '../Loader';
 import styles from './styles';
 // const InternetCheckButton = withInternetCheckComponent(TouchableOpacity);
@@ -18,6 +18,7 @@ const CustomButton = ({
     </TouchableOpacity>
   ) : showLoader ? (
     <View style={[styles.loaderContainer, style]}>
+      <Text style={styles.loadingText}>{getLanguage('pleaseWaitText')}</Text>
       <Loader />
     </View>
   ) : null;

@@ -19,27 +19,26 @@ import {API_KEY, screenTypes} from '../../constants';
 import {ARROW_BACK} from '../../constants/assets';
 import {getLanguage} from '../../localization';
 import styles from './styles';
+import AuditTypeComponent from '../../components/AuditTypeComponent';
 let watchID = '';
 const Home = ({
   setCurrentLayout,
   setAppLanguage,
   currentLayout,
-  getServiceRegions,
   resetData,
   setAddress,
+  subscriberId,
+  refNumber,
 }) => {
   const {
     language,
     serviceRegion,
     subscriber,
+    auditType,
     customerType,
     questions,
     thankyouLayout,
   } = screenTypes;
-
-  useEffect(() => {
-    getServiceRegions();
-  }, [getServiceRegions]);
 
   const getAddress = (latitude, longitude) => {
     Geocoder.from({
@@ -49,8 +48,6 @@ const Home = ({
       .then(json => {
         var location = json.results[0].formatted_address;
         setAddress(location);
-        console.log('locationnnn', location);
-        // Alert.alert('sdf', location);
       })
       .catch(error => console.warn(error));
   };
@@ -75,7 +72,6 @@ const Home = ({
       const {
         coords: {latitude, longitude},
       } = position;
-      console.log('sdfsfs', {position});
       getAddress(latitude, longitude);
       // this.setState({ lastPosition });
     });
@@ -90,13 +86,16 @@ const Home = ({
   const onBackPressed = () => {
     switch (currentLayout) {
       case subscriber:
-        setCurrentLayout(serviceRegion);
-        break;
-      case serviceRegion:
         setCurrentLayout(language);
         break;
-      case customerType:
+      case serviceRegion: //not used
+        setCurrentLayout(language);
+        break;
+      case auditType:
         setCurrentLayout(subscriber);
+        break;
+      case customerType:
+        setCurrentLayout(auditType);
         break;
       case questions:
         setCurrentLayout(customerType);
@@ -149,11 +148,15 @@ const Home = ({
         return <CustomerTypeComponent />;
       case questions:
         return <QuestionComponent />;
+      case auditType:
+        return <AuditTypeComponent />;
       case thankyouLayout:
         return (
           <View style={{alignItems: 'center'}}>
             <Text style={styles.headerText}>
-              {getLanguage('thankyouForSubmission')}
+              {`${getLanguage(
+                'thankyouForSubmission',
+              )} ${subscriberId} (${refNumber})`}
             </Text>
             <CustomButton
               title={getLanguage('goHome')}
@@ -190,25 +193,19 @@ const Home = ({
 };
 
 const mapStateToProps = ({
-  homeModel: {currentLayout, appLanguage, subscriberId},
+  homeModel: {currentLayout, appLanguage, subscriberId, refNumber},
 }) => ({
   appLanguage,
   subscriberId,
   currentLayout,
+  refNumber,
 });
 
 const mapDispatchToProps = ({
-  homeModel: {
-    setAppLanguage,
-    setCurrentLayout,
-    getServiceRegions,
-    resetData,
-    setAddress,
-  },
+  homeModel: {setAppLanguage, setCurrentLayout, resetData, setAddress},
 }) => ({
   setAppLanguage,
   setCurrentLayout,
-  getServiceRegions,
   resetData,
   setAddress,
 });

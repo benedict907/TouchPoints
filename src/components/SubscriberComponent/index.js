@@ -20,12 +20,6 @@ const SubscriberComponent = ({
   const validateSubscription = () => {
     if (subscriberID.length === 10) {
       setSubscriberId(subscriberID);
-      saveSubscriberDetails({
-        subscriber_id: subscriberID,
-        page: 'question1',
-        language: LanguageConstants[appLanguage],
-        service_region: userServiceRegion,
-      });
     } else {
       setSubscriptionError(true);
     }
