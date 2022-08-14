@@ -92,3 +92,6 @@ export const getOpacityWithColor = (color, opacity) => {
 // export const getQuestionType = ({selectedQuestionArray, selectedQuestion}) =>
 //   selectedQuestionArray[selectedQuestion];
 export const getConvertedDate = date => moment(date).format(DATE_FORMAT);
+// const isEmpty = obj => {
+//   return Object.keys(obj).length === 0;
+// };

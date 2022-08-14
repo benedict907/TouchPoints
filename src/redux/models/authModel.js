@@ -34,7 +34,7 @@ export const authModel = {
           },
         );
       } catch (error) {
-        console.log(error);
+        console.log('login', error);
       }
     },
   }),

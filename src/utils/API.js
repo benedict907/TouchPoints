@@ -2,6 +2,7 @@ import NetInfo from '@react-native-community/netinfo';
 import {API_SUCCESS, API_URL} from '../constants';
 import {Alert} from 'react-native';
 import {getState} from '../redux';
+import isNetworkAvailable from '../HOC/useNetInfo';
 const API_CONNECTION_TIMEOUT = 10000;
 const SERVER_ERROR_KEY = 500;
 /**
@@ -52,24 +53,30 @@ const invokeNetworkRequest = async (
       }
 
       if (response) {
-        console.log('RESPONSE', response);
         if (response.status === 204) {
           completion(null, '');
           return '';
         } else {
           let jsonResponse = await response.json();
+          console.log('RESPONSE', jsonResponse);
           completion && completion(null, jsonResponse);
           return jsonResponse;
         }
       }
     } catch (err) {
       try {
-        if (err.status === 401) {
+        console.log('err', err);
+        if (!(await isNetworkAvailable())) {
+          Alert.alert('', 'No Internet Connection');
         } else {
+          Alert.alert('', 'Server Error');
           const error = err.json ? await err.json() : err;
           const {message} = error;
         }
       } catch (error) {
+        if (!(await isNetworkAvailable())) {
+          Alert.alert('', 'No Internet Connection');
+        }
         const exception = {
           key: 500,
           message: 'No Internet Connection',
@@ -214,7 +221,8 @@ const multipartFileUploadRequest = async (
  * Creates an `Authorization` header object using the `token` parameter
  * @param {*} token user token to be used for `Authorization`
  */
-const authorizationHeader = () => ({
+const authorizationHeader = token => ({
+  Authorization: 'Bearer ' + token,
   'Content-Type': 'application/json',
   Accept: '*/*',
   'Access-Control-Allow-Origin': '*',
@@ -223,7 +231,15 @@ const authorizationHeader = () => ({
 const authorizationHeaderForBackgroundApis = token => ({
   Authorization: 'Bearer ' + token,
 });
+const getHeadersWithToken = (isLogout = false) => {
+  const {
+    authModel: {
+      userData: {access_token},
+    },
+  } = getState();
 
+  return authorizationHeader(access_token);
+};
 const getRequestAsync = (endPoint, headers, params) =>
   new Promise((resolve, reject) =>
     getRequest(endPoint, headers, params, (err, response) => {
@@ -240,6 +256,7 @@ export {
   getRequestAsync,
   postRequest,
   putRequest,
+  getHeadersWithToken,
   deleteRequest,
   authorizationHeader,
   invokeNetworkRequest,

@@ -15,6 +15,10 @@ const languages = {
     en: 'Take Snapshot',
     tn: 'ஸ்னாப்ஷாட் எடுக்கவும்',
   },
+  takeVideo: {
+    en: 'Take Video',
+    tn: 'வீடியோ எடு',
+  },
   enterSubscriberID: {
     en: ' Please Enter The Customer Subscriber ID',
     tn: 'வாடிக்கையாளர் சந்தாதாரர் ஐடியை உள்ளிடவும்',
@@ -54,5 +58,17 @@ const languages = {
   noText: {
     en: 'No',
     tn: 'இல்லை',
+  },
+  selectAuditType: {
+    en: 'Select Audit Type',
+    tn: 'தணிக்கை வகையைத் தேர்ந்தெடுக்கவும்',
+  },
+  pleaseWaitText: {
+    en: 'Data is being uploaded to the server.Please wait....',
+    tn: 'சர்வரில் தரவு பதிவேற்றப்படுகிறது. தயவுசெய்து காத்திருக்கவும்....',
+  },
+  videoCompressingText: {
+    en: 'please wait...',
+    tn: 'தயவுசெய்து காத்திருங்கள்...',
   },
 };

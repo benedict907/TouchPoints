@@ -18,12 +18,13 @@ export default StyleSheet.create({
     marginTop: pixelSizeVertical(40),
   },
   loaderContainer: {
-    height: heightPixel(45),
-    width: widthPixel(120),
     borderRadius: 30,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: pixelSizeVertical(40),
+  },
+  loadingText: {
+    color: 'white',
+    fontSize: 22,
+    textAlign: 'center',
   },
   textStyle: {
     color: COLOR_BLACK,

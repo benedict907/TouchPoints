@@ -8,12 +8,16 @@ import styles from './styles';
 
 const CustomerTypeComponent = ({
   subscriberId,
+  userServiceRegion,
+  auditType,
+  appLanguage,
   setCustomerType,
   saveSubscriberDetails,
   setSelectedQuestionsArray,
   mdu_questions,
   odu_questions,
   non_odu_questions,
+  navigation,
 }) => {
   const [radioButtonValues, setRadioButtonValues] = useState([
     {
@@ -44,8 +48,11 @@ const CustomerTypeComponent = ({
     setSelectedQuestionsArray(selectedButton[0].data);
     saveSubscriberDetails({
       subscriber_id: subscriberId,
-      page: 'question2',
+      page: 'question1',
       customer_type: selectedButton[0].api_value,
+      language: appLanguage,
+      champion_audit: auditType,
+      navigation,
     });
   };
 
@@ -83,9 +90,20 @@ const CustomerTypeComponent = ({
 };
 
 const mapStateToProps = ({
-  homeModel: {subscriberId, mdu_questions, odu_questions, non_odu_questions},
+  homeModel: {
+    subscriberId,
+    userServiceRegion,
+    auditType,
+    appLanguage,
+    mdu_questions,
+    odu_questions,
+    non_odu_questions,
+  },
 }) => ({
   subscriberId,
+  userServiceRegion,
+  auditType,
+  appLanguage,
   mdu_questions,
   odu_questions,
   non_odu_questions,

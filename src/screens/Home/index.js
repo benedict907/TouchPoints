@@ -6,6 +6,7 @@ import {
   ScrollView,
   PermissionsAndroid,
   Alert,
+  BackHandler,
 } from 'react-native';
 import {connect} from 'react-redux';
 import CustomButton from '../../components/common/CustomButton';
@@ -19,31 +20,30 @@ import {API_KEY, screenTypes} from '../../constants';
 import {ARROW_BACK} from '../../constants/assets';
 import {getLanguage} from '../../localization';
 import styles from './styles';
+import AuditTypeComponent from '../../components/AuditTypeComponent';
 import {useFocusEffect} from '@react-navigation/native';
 let watchID = '';
 const Home = ({
   setCurrentLayout,
   setAppLanguage,
   currentLayout,
-  getServiceRegions,
+  navigation,
   getCurrentVersion,
   resetData,
   setAddress,
   subscriberId,
+  refNumber,
 }) => {
   const {
     language,
     serviceRegion,
     subscriber,
+    auditType,
     customerType,
     questions,
     thankyouLayout,
   } = screenTypes;
-
-  useEffect(() => {
-    getServiceRegions();
-  }, [getServiceRegions]);
-
+  console.log('currre!!', currentLayout);
   useFocusEffect(
     useCallback(() => {
       if (currentLayout === language) {
@@ -51,6 +51,12 @@ const Home = ({
       }
     }, [currentLayout, getCurrentVersion, language]),
   );
+  // useEffect(() => {
+  //   const backHandler = BackHandler.addEventListener('hardwareBackPress', () =>
+  //     onBackPressed(currentLayout),
+  //   );
+  //   return () => backHandler.remove();
+  // }, [currentLayout, onBackPressed]);
 
   const getAddress = (latitude, longitude) => {
     Geocoder.from({
@@ -96,24 +102,35 @@ const Home = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setAddress]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const onBackPressed = () => {
+    // setCurrentLayout(previousLayout ? previousLayout : language);
+    // return true;
+    // // previousLayout
+    console.log('currre', currentLayout);
     switch (currentLayout) {
       case subscriber:
-        setCurrentLayout(serviceRegion);
-        break;
-      case serviceRegion:
         setCurrentLayout(language);
         break;
-      case customerType:
+      case serviceRegion: //not used
+        setCurrentLayout(language);
+        break;
+      case auditType:
         setCurrentLayout(subscriber);
+        break;
+      case customerType:
+        setCurrentLayout(auditType);
         break;
       case questions:
         setCurrentLayout(customerType);
         break;
+      case language:
+        return false;
       default:
-        setCurrentLayout(language);
+        setCurrentLayout(subscriber);
         break;
     }
+    return true;
   };
   const requestLocationPermission = async () => {
     try {
@@ -155,14 +172,18 @@ const Home = ({
       case subscriber:
         return <SubscriberComponent />;
       case customerType:
-        return <CustomerTypeComponent />;
+        return <CustomerTypeComponent navigation={navigation} />;
       case questions:
         return <QuestionComponent />;
+      case auditType:
+        return <AuditTypeComponent />;
       case thankyouLayout:
         return (
           <View style={{alignItems: 'center'}}>
             <Text style={styles.headerText}>
-              {getLanguage('thankyouForSubmission')} {subscriberId}
+              {`${getLanguage(
+                'thankyouForSubmission',
+              )} ${subscriberId} (${refNumber})`}
             </Text>
             <CustomButton
               title={getLanguage('goHome')}
@@ -199,18 +220,25 @@ const Home = ({
 };
 
 const mapStateToProps = ({
-  homeModel: {currentLayout, appLanguage, subscriberId},
+  homeModel: {
+    currentLayout,
+    previousLayout,
+    appLanguage,
+    subscriberId,
+    refNumber,
+  },
 }) => ({
   appLanguage,
   subscriberId,
   currentLayout,
+  previousLayout,
+  refNumber,
 });
 
 const mapDispatchToProps = ({
   homeModel: {
     setAppLanguage,
     setCurrentLayout,
-    getServiceRegions,
     getCurrentVersion,
     resetData,
     setAddress,
@@ -218,7 +246,6 @@ const mapDispatchToProps = ({
 }) => ({
   setAppLanguage,
   setCurrentLayout,
-  getServiceRegions,
   getCurrentVersion,
   resetData,
   setAddress,

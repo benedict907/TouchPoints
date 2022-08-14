@@ -5,23 +5,29 @@ import {
   oduQuestions,
   nonOduQuestions,
   subQuestions,
+  LOGIN_SCREEN,
 } from '../../constants';
-import {Alert, Linking} from 'react-native';
-import {getVersion} from 'react-native-device-info';
-import mime from 'mime';
-
+import {isEmpty} from 'lodash';
 import {
   authorizationHeader,
+  getHeadersWithToken,
   getRequest,
-  multipartFileUploadRequest,
   postRequest,
 } from '../../utils/API';
 import {getConvertedDate} from '../../utils/helpers';
+import {uploadPhoto} from '../../utils/aws';
+import {getKey} from '../../components/QuestionComponent/helper';
+import {Alert, Linking} from 'react-native';
+import {getVersion} from 'react-native-device-info';
+import NetInfo from '@react-native-community/netinfo';
+import isNetworkAvailable from '../../HOC/useNetInfo';
+import {navigateAndSimpleReset} from '../../Navigation/Root';
+
 const {
   language,
-  serviceRegion,
   subscriber,
   customerType: customerTypeConstant,
+  auditType,
   questions,
   thankyouLayout,
 } = screenTypes;
@@ -31,20 +37,45 @@ export const homeModel = {
     appLanguage: null,
     subscriberId: null,
     customerType: null,
+    auditType: 1,
+    refNumber: '',
     serviceRegions: [],
     userServiceRegion: {},
     currentLayout: language,
+    previousLayout: null,
     selectedQuestionArray: [],
     selectedQuestion: 0,
-    sub_questions: subQuestions,
-    mdu_questions: mduQuestions,
-    odu_questions: oduQuestions,
-    non_odu_questions: nonOduQuestions,
+    sub_questions: JSON.parse(JSON.stringify(subQuestions)),
+    mdu_questions: JSON.parse(JSON.stringify(mduQuestions)),
+    odu_questions: JSON.parse(JSON.stringify(oduQuestions)),
+    non_odu_questions: JSON.parse(JSON.stringify(nonOduQuestions)),
     address: '',
+    requestData: [],
+    subRequestData: [],
   },
   reducers: {
+    setCredentials: (state, payload) => {
+      return {...state, credentials: payload};
+    },
+    setRequestData: (state, payload) => {
+      return {...state, requestData: [...state.requestData, payload]};
+    },
+    setReferenceNumber: (state, payload) => {
+      return {...state, refNumber: payload};
+    },
+    setSubRequestData: (state, payload) => {
+      return {
+        ...state,
+        subRequestData: [...state.subRequestData, payload],
+      };
+    },
     setAppLanguage: (state, payload) => {
-      return {...state, appLanguage: payload, currentLayout: serviceRegion};
+      return {
+        ...state,
+        appLanguage: payload,
+        previousLayout: language,
+        currentLayout: subscriber,
+      };
     },
     setUsersServiceRegion: (state, payload) => {
       return {...state, userServiceRegion: payload, currentLayout: subscriber};
@@ -58,14 +89,28 @@ export const homeModel = {
       return {
         ...state,
         subscriberId: payload,
+        previousLayout: subscriber,
+        currentLayout: auditType,
+      };
+    },
+    setAuditType: (state, payload) => {
+      return {
+        ...state,
+        auditType: payload,
+        previousLayout: auditType,
         currentLayout: customerTypeConstant,
       };
     },
     setCustomerType: (state, payload) => {
-      return {...state, customerType: payload, currentLayout: questions};
+      return {...state, customerType: payload};
     },
+
     setCurrentLayout: (state, payload) => {
-      return {...state, currentLayout: payload};
+      return {
+        ...state,
+        previousLayout: state.currentLayout,
+        currentLayout: payload,
+      };
     },
     setSelectedQuestion: (state, payload) => {
       return {...state, selectedQuestion: payload};
@@ -81,60 +126,18 @@ export const homeModel = {
         ...state,
         appLanguage: null,
         subscriberId: null,
+        refNumber: '',
         customerType: null,
         userServiceRegion: {},
         currentLayout: language,
         selectedQuestionArray: [],
         selectedQuestion: 0,
-        sub_questions: subQuestions.map(
-          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
-            return {
-              id,
-              questionHeader,
-              questionHeaderTamil,
-              image,
-              capturedImage: '',
-              isQuestion,
-              isSubQuestion: true,
-            };
-          },
-        ),
-        mdu_questions: mduQuestions.map(
-          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
-            return {
-              id,
-              questionHeader,
-              questionHeaderTamil,
-              image,
-              capturedImage: '',
-              isQuestion,
-            };
-          },
-        ),
-        odu_questions: oduQuestions.map(
-          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
-            return {
-              id,
-              questionHeader,
-              questionHeaderTamil,
-              image,
-              capturedImage: '',
-              isQuestion,
-            };
-          },
-        ),
-        non_odu_questions: nonOduQuestions.map(
-          ({id, questionHeader, questionHeaderTamil, image, isQuestion}) => {
-            return {
-              id,
-              questionHeader,
-              questionHeaderTamil,
-              image,
-              capturedImage: '',
-              isQuestion,
-            };
-          },
-        ),
+        sub_questions: JSON.parse(JSON.stringify(subQuestions)),
+        mdu_questions: JSON.parse(JSON.stringify(mduQuestions)),
+        odu_questions: JSON.parse(JSON.stringify(oduQuestions)),
+        non_odu_questions: JSON.parse(JSON.stringify(nonOduQuestions)),
+        requestData: [],
+        subRequestData: [],
       };
     },
 
@@ -172,6 +175,7 @@ export const homeModel = {
       let tempQuestions = [];
       tempQuestions = selectedQuestionArray;
       tempQuestions[selectedQuestion].capturedImage = payload;
+      tempQuestions[selectedQuestion].compressedImage = payload;
       return {
         ...state,
         [customerKey]: [...tempQuestions],
@@ -181,6 +185,7 @@ export const homeModel = {
   },
   effects: dispatch => ({
     getCurrentVersion: async requestBody => {
+      console.log('sdfsdf', 'getCurrentVersion');
       try {
         await getRequest(
           '/getApiVersion',
@@ -208,10 +213,11 @@ export const homeModel = {
           },
         );
       } catch (error) {
-        console.log(error);
+        console.log('getCurrentVersion', error);
       }
     },
     getServiceRegions: async requestBody => {
+      console.log('getAllServiceRegion');
       try {
         await getRequest(
           '/getAllServiceRegion',
@@ -222,29 +228,64 @@ export const homeModel = {
           },
         );
       } catch (error) {
-        console.log(error);
+        console.log('getAllServiceRegion', error);
       }
     },
     saveSubscriberDetails: async requestBody => {
+      const {
+        subscriber_id,
+        page,
+        customer_type,
+        language: appLanguage,
+        champion_audit,
+        navigation,
+      } = requestBody;
+
       try {
-        console.log('requestBody', requestBody);
         await postRequest(
           '/saveQuestions',
-          authorizationHeader(),
-          JSON.stringify(requestBody),
+          getHeadersWithToken(),
+          JSON.stringify({
+            subscriber_id,
+            page,
+            customer_type,
+            language: appLanguage,
+            champion_audit,
+          }),
           (_err, response) => {
-            // dispatch.homeModel.setServiceRegions(response.data);
+            const {response_code, data, errors} = response;
+            if (response_code === 1 || response_code === '1') {
+              dispatch.homeModel.setCurrentLayout(questions);
+              dispatch.homeModel.setCredentials(data);
+            } else if (response_code === '-1') {
+              Alert.alert('', errors);
+              navigation.navigate(LOGIN_SCREEN);
+              dispatch.homeModel.setCurrentLayout(language);
+            } else {
+              Alert.alert('', errors);
+              dispatch.homeModel.setCurrentLayout(subscriber);
+            }
           },
         );
       } catch (error) {
-        console.log(error);
+        console.log('saveSubscriberDetails', error);
       }
     },
 
     saveQuestionDetails: async (requestBody, models) => {
       try {
+        const {lastQuestion, isNoPressed} = requestBody || {};
+        console.log('ssss', {
+          lastQuestion,
+          isEmpty: isEmpty(lastQuestion),
+          isNetAvailable: await isNetworkAvailable(),
+        });
+        if (!(await isNetworkAvailable()) && !isEmpty(lastQuestion)) {
+          Alert.alert('', 'No internet connection');
+          return;
+        }
         dispatch.authModel.setIsLoading(true);
-        const {lastQuestion, subArray, isNoPressed} = requestBody || {};
+        console.log('reqq', requestBody);
         const {
           homeModel: {
             subscriberId,
@@ -253,78 +294,122 @@ export const homeModel = {
             selectedQuestionArray,
           },
         } = getState();
-        let formData = new FormData();
-        let key = '';
-        let locationKey = '';
-        let timeKey = '';
+        const {id, capturedImage, isSubQuestion, compressedImage} = lastQuestion
+          ? lastQuestion || {}
+          : selectedQuestionArray[selectedQuestion] || {};
+        console.log(
+          'fff',
+          lastQuestion
+            ? lastQuestion || {}
+            : selectedQuestionArray[selectedQuestion],
+        );
+        let body = {};
         let questionLength = selectedQuestionArray.length;
 
-        const {id, capturedImage} = lastQuestion
-          ? lastQuestion
-          : selectedQuestionArray[selectedQuestion];
-        switch (customerType) {
-          case 'mdu_question':
-            key = `mdu_question${id}`;
-            locationKey = `mdu_location_${id}`;
-            timeKey = `mdu_time_${id}`;
-            break;
-          case 'odu_question':
-          case 'non_odu_question':
-            key = `non_mdu_question${id}`;
-            locationKey = `non_mdu_location_${id}`;
-            timeKey = `non_mdu_time_${id}`;
-            break;
-        }
-
-        formData.append('subscriber_id', subscriberId);
-        formData.append('page', key);
-        formData.append(locationKey, models.homeModel.address);
-        formData.append(timeKey, getConvertedDate(new Date()));
-
-        if (subArray?.length > 0) {
-          formData.append(`${key}_option_value`, 1);
-          subArray.map(item => {
-            let temp_key = '';
-            Object.keys(item).forEach(key_val => {
-              temp_key = key_val;
-            });
-            var filename = item[temp_key].replace(/^.*[\\\/]/, '');
-            formData.append(temp_key, {
-              name: filename,
-              type: mime.getType(item[temp_key]),
-              uri: item[temp_key],
-            });
-          });
+        body.subscriber_id = subscriberId;
+        body.page = getKey({id, customerType});
+        body.location = models.homeModel.address;
+        body.time = getConvertedDate(new Date());
+        body.file = capturedImage;
+        body.compressedImage = compressedImage;
+        if (isSubQuestion) {
+          dispatch.homeModel.setSubRequestData(body);
         } else {
-          var filename = capturedImage.replace(/^.*[\\\/]/, '');
-
-          isNoPressed !== undefined
-            ? formData.append(`${key}_option_value`, 0)
-            : formData.append(key, {
-                name: filename,
-                type: mime.getType(capturedImage),
-                uri: capturedImage,
-              });
+          dispatch.homeModel.setRequestData(body);
         }
-        await multipartFileUploadRequest(
-          'POST',
-          formData,
-          '/saveQuestions',
-          (error, response) => {
-            if (response) {
-              dispatch.authModel.setIsLoading(false);
-              if (selectedQuestion + 1 === questionLength) {
-                dispatch.homeModel.setCurrentLayout(thankyouLayout);
-              } else {
-                dispatch.homeModel.setSelectedQuestion(selectedQuestion + 1);
+
+        if (lastQuestion) {
+          const length = models.homeModel.requestData.length;
+          let data = models.homeModel.requestData;
+
+          if (isNoPressed) {
+            data.push({
+              subscriber_id: subscriberId,
+              page: body.page,
+              location: models.homeModel.address,
+              time: getConvertedDate(new Date()),
+              option: models.homeModel.subRequestData.length > 0 ? 1 : 0,
+              option_values:
+                models.homeModel.subRequestData.length > 0
+                  ? [...models.homeModel.subRequestData, body]
+                  : [],
+            });
+          } else {
+            const tempKey = data[length - 1].page;
+            data[length - 1] = {
+              subscriber_id: subscriberId,
+              page: tempKey,
+              location: models.homeModel.address,
+              time: getConvertedDate(new Date()),
+              option: models.homeModel.subRequestData.length > 0 ? 1 : 0,
+              option_values:
+                models.homeModel.subRequestData.length > 0
+                  ? [...models.homeModel.subRequestData, body]
+                  : [],
+            };
+          }
+          const mappedArray = await Promise.all(
+            data.map(async item => {
+              console.log('itemm', item);
+              if (item.file && item.file !== '') {
+                item.file = await uploadPhoto(item.file);
               }
-            } else if (error) {
-              dispatch.authModel.setIsLoading(false);
-            }
-          },
-        );
+
+              if (item.option === 1) {
+                item.option_values = await Promise.all(
+                  item.option_values.map(async values => {
+                    if (values.file) {
+                      values.file = await uploadPhoto(values.file);
+                    }
+                    return values;
+                  }),
+                );
+              }
+
+              return item;
+            }),
+          );
+
+          console.log('requestData!!!', mappedArray);
+
+          await postRequest(
+            '/saveInnerQuestions',
+            getHeadersWithToken(),
+            JSON.stringify(mappedArray),
+            (error, response) => {
+              const {
+                response_code,
+                data: {ref_number},
+                errors,
+              } = response;
+
+              if (response_code === '1') {
+                dispatch.authModel.setIsLoading(false);
+                dispatch.homeModel.setReferenceNumber(ref_number);
+                dispatch.homeModel.setCurrentLayout(thankyouLayout);
+                dispatch.homeModel.setSelectedQuestion(0);
+              } else if (response_code === '-1') {
+                navigateAndSimpleReset(LOGIN_SCREEN);
+                dispatch.homeModel.setCurrentLayout(language);
+              } else if (error) {
+                Alert.alert('', errors);
+                dispatch.authModel.setIsLoading(false);
+              }
+            },
+          );
+        } else {
+          dispatch.authModel.setIsLoading(false);
+
+          if (selectedQuestion + 1 === questionLength) {
+            dispatch.homeModel.setCurrentLayout(thankyouLayout);
+          } else {
+            dispatch.homeModel.setSelectedQuestion(selectedQuestion + 1);
+          }
+        }
+        // });
       } catch (error) {
-        alert('', JSON.stringify(error));
+        dispatch.authModel.setIsLoading(false);
+        alert('', error);
         console.log(error);
       }
     },

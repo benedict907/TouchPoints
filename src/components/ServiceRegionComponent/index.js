@@ -18,7 +18,7 @@ const ServiceRegionComponent = ({serviceRegions, setUsersServiceRegion}) => {
   }, []);
 
   const validateSubscription = () => {
-    let selectedButton = serviceRegions.filter(item => item.selected);
+    let selectedButton = radioButtonValues.filter(item => item.selected);
     setUsersServiceRegion(selectedButton[0].id);
   };
 

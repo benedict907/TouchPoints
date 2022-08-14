@@ -39,8 +39,15 @@ export default StyleSheet.create({
   imageStyle: {height: heightPixel(280), width: '100%'},
   capturedImageStyle: {
     height: heightPixel(280),
+    width: '50%',
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  capturedVideoStyle: {
+    height: heightPixel(280),
     width: '80%',
     marginTop: 20,
+    marginStart: '50%',
     alignSelf: 'center',
   },
   snapShotStyle: {

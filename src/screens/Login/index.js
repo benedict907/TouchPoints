@@ -1,12 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  PermissionsAndroid,
-  Alert,
-} from 'react-native';
+import React, {useState} from 'react';
+import {View, Alert} from 'react-native';
 
 import StyledTextInput from '../../components/common/StyledTextInput';
 import {connect} from 'react-redux';
@@ -71,17 +64,10 @@ const mapStateToProps = ({
 });
 
 const mapDispatchToProps = ({
-  authModel: {
-    login,
-    setCurrentLayout,
-    getServiceRegions,
-    resetData,
-    setAddress,
-  },
+  authModel: {login, setCurrentLayout, resetData, setAddress},
 }) => ({
   login,
   setCurrentLayout,
-  getServiceRegions,
   resetData,
   setAddress,
 });

@@ -32,6 +32,8 @@ export const CURRENCY_INDIAN = '₹';
 export const CURRENCY_UAE = 'AED';
 export const API_KEY = 'AIzaSyDUGE5N3XI-Vx2tH1n39XFw2fvI9JR-vjg';
 export const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+export const ANDROID_OS = 'android';
+export const NO_MEDIA = '/.nomedia';
 export const profileList = [
   {
     index: 1,
@@ -53,10 +55,12 @@ export const LOGIN_SCREEN = 'LOGIN_SCREEN';
 export const HOME_STACK = 'HOME';
 export const SUBSCRIBER_ID_SCREEN = 'SUBSCRIBER_ID_SCREEN';
 export const IMAGE_PREVIEW_SCREEN = 'IMAGE_PREVIEW_SCREEN';
+export const VIDEO_CAPTURE_SCREEN = 'VIDEO_CAPTURE_SCREEN';
 export const screenTypes = {
   language: 'LANGUAGE_SCREEN',
   serviceRegion: 'SERVICE_REGION',
   subscriber: 'SUBSCRIBER_ID_SCREEN',
+  auditType: 'AUDIT_TYPE_SCREEN',
   customerType: 'CUSTOMER_TYPE_SCREEN',
   questions: 'QUESTIONS_SCREEN',
   thankyouLayout: 'THANK_YOU',
@@ -88,6 +92,7 @@ export const mduQuestions = [
     questionHeaderTamil: 'ஸ்விட்ச் என்ட் டயிட்னஸ்  போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_1_3,
     capturedImage: '',
+    isVideo: true,
   },
   {
     id: 4,
@@ -111,6 +116,7 @@ export const mduQuestions = [
       'செட் டாப் பாக்ஸ்  என்ட்  டயிட்னஸ் போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_1_6,
     capturedImage: '',
+    isVideo: true,
   },
   {
     id: 7,
@@ -182,6 +188,7 @@ export const oduQuestions = [
     questionHeaderTamil: 'LNBF என்ட் டயிட்னஸ்  போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_7,
     capturedImage: '',
+    isVideo: true,
   },
   {
     id: 8,
@@ -219,6 +226,7 @@ export const oduQuestions = [
       'செட் டாப் பாக்ஸ்  என்ட்  டயிட்னஸ் போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_12,
     capturedImage: '',
+    isVideo: true,
   },
   {
     id: 13,
@@ -290,6 +298,7 @@ export const nonOduQuestions = [
     questionHeaderTamil: 'LNBF என்ட் டயிட்னஸ்  போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_7,
     capturedImage: '',
+    isVideo: true,
   },
   {
     id: 8,
@@ -327,6 +336,7 @@ export const nonOduQuestions = [
       'செட் டாப் பாக்ஸ்  என்ட்  டயிட்னஸ் போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_12,
     capturedImage: '',
+    isVideo: true,
   },
   {
     id: 13,
