@@ -115,9 +115,11 @@ const VideoCaptureScreen = ({
 
   const stopCapture = () => {
     const shouldStopCapture = () => {
-      stopTimer();
-      camera.current.stopRecording();
-      setIsRecording(false);
+      if (camera.current) {
+        stopTimer();
+        camera.current.stopRecording();
+        setIsRecording(false);
+      }
     };
     if (runAfterInteractions) {
       InteractionManager.runAfterInteractions(shouldStopCapture);

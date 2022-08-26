@@ -37,8 +37,12 @@ const mapStateToProps = ({
   serviceRegions,
 });
 
-const mapDispatchToProps = ({authModel: {setIsConnected}}) => ({
+const mapDispatchToProps = ({
+  authModel: {setIsConnected},
+  homeModel: {getServiceRegions},
+}) => ({
   setIsConnected,
+  getServiceRegions,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Navigation);
