@@ -1,27 +1,15 @@
 import React from 'react';
-import {Text, View, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity} from 'react-native';
 import {connect} from 'react-redux';
-import {getLanguage} from '../../../localization';
-import Loader from '../Loader';
+import withPreventDoubleClick from '../../../HOC/withPreventDoubleClick';
 import styles from './styles';
-// const InternetCheckButton = withInternetCheckComponent(TouchableOpacity);
-const CustomButton = ({
-  title,
-  onPress,
-  style,
-  isLoading,
-  showLoader = false,
-}) => {
-  return !isLoading ? (
-    <TouchableOpacity onPress={onPress} style={[styles.container, style]}>
+const PreventDoubleClick = withPreventDoubleClick(TouchableOpacity);
+const CustomButton = ({title, onPress, style}) => {
+  return (
+    <PreventDoubleClick onPress={onPress} style={[styles.container, style]}>
       <Text style={styles.textStyle}>{title}</Text>
-    </TouchableOpacity>
-  ) : showLoader ? (
-    <View style={[styles.loaderContainer, style]}>
-      <Text style={styles.loadingText}>{getLanguage('pleaseWaitText')}</Text>
-      <Loader />
-    </View>
-  ) : null;
+    </PreventDoubleClick>
+  );
 };
 
 const mapStateToProps = ({authModel: {isLoading}}) => ({

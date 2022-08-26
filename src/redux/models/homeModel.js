@@ -8,6 +8,7 @@ import {
   LOGIN_SCREEN,
 } from '../../constants';
 import {isEmpty} from 'lodash';
+import crashlytics from '@react-native-firebase/crashlytics';
 import {
   authorizationHeader,
   getHeadersWithToken,
@@ -19,7 +20,6 @@ import {uploadPhoto} from '../../utils/aws';
 import {getKey} from '../../components/QuestionComponent/helper';
 import {Alert, Linking} from 'react-native';
 import {getVersion} from 'react-native-device-info';
-import NetInfo from '@react-native-community/netinfo';
 import isNetworkAvailable from '../../HOC/useNetInfo';
 import {navigateAndSimpleReset} from '../../Navigation/Root';
 
@@ -52,11 +52,18 @@ export const homeModel = {
     address: '',
     requestData: [],
     subRequestData: [],
+    offlineData: [],
   },
   reducers: {
     setCredentials: (state, payload) => {
       return {...state, credentials: payload};
     },
+
+    setOfflineData: (state, payload) => {
+      const {offlineData} = state;
+      return {...state, offlineData: [...offlineData, payload]};
+    },
+
     setRequestData: (state, payload) => {
       return {...state, requestData: [...state.requestData, payload]};
     },
@@ -224,10 +231,16 @@ export const homeModel = {
           authorizationHeader(),
           null,
           (_err, response) => {
-            dispatch.homeModel.setServiceRegions(response.data);
+            console.log('errrrrr', _err);
+            if (!_err) {
+              dispatch.homeModel.setServiceRegions(response.data);
+            } else {
+              crashlytics().log(`saveSubscriberDetails  ${_err}`);
+            }
           },
         );
       } catch (error) {
+        crashlytics().log(`getServiceRegions  ${error}`);
         console.log('getAllServiceRegion', error);
       }
     },
@@ -268,6 +281,7 @@ export const homeModel = {
           },
         );
       } catch (error) {
+        crashlytics().log(`saveSubscriberDetails  ${error}`);
         console.log('saveSubscriberDetails', error);
       }
     },
@@ -275,11 +289,6 @@ export const homeModel = {
     saveQuestionDetails: async (requestBody, models) => {
       try {
         const {lastQuestion, isNoPressed} = requestBody || {};
-        console.log('ssss', {
-          lastQuestion,
-          isEmpty: isEmpty(lastQuestion),
-          isNetAvailable: await isNetworkAvailable(),
-        });
         if (!(await isNetworkAvailable()) && !isEmpty(lastQuestion)) {
           Alert.alert('', 'No internet connection');
           return;
@@ -297,12 +306,7 @@ export const homeModel = {
         const {id, capturedImage, isSubQuestion, compressedImage} = lastQuestion
           ? lastQuestion || {}
           : selectedQuestionArray[selectedQuestion] || {};
-        console.log(
-          'fff',
-          lastQuestion
-            ? lastQuestion || {}
-            : selectedQuestionArray[selectedQuestion],
-        );
+
         let body = {};
         let questionLength = selectedQuestionArray.length;
 
@@ -348,6 +352,7 @@ export const homeModel = {
                   : [],
             };
           }
+
           const mappedArray = await Promise.all(
             data.map(async item => {
               console.log('itemm', item);
@@ -409,8 +414,8 @@ export const homeModel = {
         // });
       } catch (error) {
         dispatch.authModel.setIsLoading(false);
-        alert('', error);
         console.log(error);
+        crashlytics().log(`saveInnerQuestions  ${error}`);
       }
     },
   }),

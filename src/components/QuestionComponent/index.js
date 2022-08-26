@@ -1,5 +1,5 @@
-import React, {useCallback} from 'react';
-import {Image, Text, View, FlatList} from 'react-native';
+import React, {useCallback, useEffect} from 'react';
+import {Image, Text, View, FlatList, Alert} from 'react-native';
 import {connect} from 'react-redux';
 import CustomButton from '../common/CustomButton';
 import styles from './styles';
@@ -8,8 +8,7 @@ import {useNavigation} from '@react-navigation/native';
 import {getLanguage} from '../../localization';
 import {getQuestionType} from './helper';
 import Video from 'react-native-video';
-import {useEffect} from 'react';
-// import {useNetInfo} from '@react-native-community/netinfo';
+import Loader from '../common/Loader';
 
 const list = [
   {id: 'header'},
@@ -30,11 +29,23 @@ const QuestionComponent = ({
 }) => {
   const navigation = useNavigation();
 
+  useEffect(() => {
+    setIsLoading(false);
+  }, [setIsLoading]);
+
   const validateSubscription = useCallback(async () => {
     if (selectedQuestion + 1 === selectedQuestionArray.length) {
-      saveQuestionDetails({lastQuestion: selectedQuestionValue});
+      if (selectedQuestionValue.capturedImage !== '') {
+        saveQuestionDetails({lastQuestion: selectedQuestionValue});
+      } else {
+        Alert.alert('', 'Please select an image');
+      }
     } else {
-      saveQuestionDetails();
+      if (selectedQuestionValue.capturedImage !== '') {
+        saveQuestionDetails();
+      } else {
+        Alert.alert('', 'Please select an image');
+      }
     }
   }, [
     selectedQuestion,
@@ -89,7 +100,14 @@ const QuestionComponent = ({
               />
             </View>
           )
-        ) : null;
+        ) : (
+          <View style={styles.loaderContainer}>
+            <Text style={styles.loadingText}>
+              {getLanguage('pleaseWaitText')}
+            </Text>
+            <Loader />
+          </View>
+        );
 
       case 'capturedImage':
         return !isLoading ? (
@@ -120,22 +138,40 @@ const QuestionComponent = ({
           ) : null
         ) : null;
       case 'buttons':
-        return !selectedQuestionValue.isQuestion ? (
-          <>
-            <CustomButton
-              showLoader={true}
-              title={
-                selectedQuestionValue.capturedImage
-                  ? getLanguage('nextText')
-                  : selectedQuestionValue.isVideo
-                  ? getLanguage('takeVideo')
-                  : getLanguage('takeSnapShot')
-              }
-              style={styles.snapShotStyle}
-              onPress={() =>
-                selectedQuestionValue.capturedImage
-                  ? validateSubscription()
-                  : navigation.navigate(
+        return !isLoading ? (
+          !selectedQuestionValue.isQuestion ? (
+            <>
+              <CustomButton
+                showLoader={true}
+                title={
+                  selectedQuestionValue.capturedImage
+                    ? getLanguage('nextText')
+                    : selectedQuestionValue.isVideo
+                    ? getLanguage('takeVideo')
+                    : getLanguage('takeSnapShot')
+                }
+                style={styles.snapShotStyle}
+                onPress={() =>
+                  selectedQuestionValue.capturedImage
+                    ? validateSubscription()
+                    : navigation.navigate(
+                        selectedQuestionValue.isVideo
+                          ? VIDEO_CAPTURE_SCREEN
+                          : IMAGE_PREVIEW_SCREEN,
+                        {
+                          customerType,
+                          selectedQuestion,
+                        },
+                      )
+                }
+              />
+              {selectedQuestionValue.capturedImage ? (
+                <CustomButton
+                  title={getLanguage('retryText')}
+                  showLoader={false}
+                  style={styles.snapShotStyle}
+                  onPress={() =>
+                    navigation.navigate(
                       selectedQuestionValue.isVideo
                         ? VIDEO_CAPTURE_SCREEN
                         : IMAGE_PREVIEW_SCREEN,
@@ -144,27 +180,11 @@ const QuestionComponent = ({
                         selectedQuestion,
                       },
                     )
-              }
-            />
-            {selectedQuestionValue.capturedImage ? (
-              <CustomButton
-                title={getLanguage('retryText')}
-                showLoader={false}
-                style={styles.snapShotStyle}
-                onPress={() =>
-                  navigation.navigate(
-                    selectedQuestionValue.isVideo
-                      ? VIDEO_CAPTURE_SCREEN
-                      : IMAGE_PREVIEW_SCREEN,
-                    {
-                      customerType,
-                      selectedQuestion,
-                    },
-                  )
-                }
-              />
-            ) : null}
-          </>
+                  }
+                />
+              ) : null}
+            </>
+          ) : null
         ) : null;
     }
   };

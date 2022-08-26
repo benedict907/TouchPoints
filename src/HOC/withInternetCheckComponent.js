@@ -13,7 +13,6 @@ const withInternetCheckComponent = WrappedComponent => {
       );
       return () => unsubscribe();
     }, []);
-
     const onPressButton = () => {
       if (!isOfflineButton) {
         if (isConnected) {

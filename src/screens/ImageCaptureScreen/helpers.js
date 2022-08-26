@@ -43,8 +43,6 @@ const captureImage = async (camera, navigation, updateImage) => {
   }
 };
 
-const stopVideo = camera => {
-  camera.stopRecording();
-};
+const stopVideo = camera => camera && camera.stopRecording();
 
 export {changeCameraType, captureImage, stopVideo, toggleFlash};

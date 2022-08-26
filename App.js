@@ -3,7 +3,6 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import {getPersistor} from '@rematch/persist';
 import {PersistGate} from 'redux-persist/integration/react';
-import SplashScreen from 'react-native-splash-screen';
 
 import store from './src/redux';
 import Navigation from './src/Navigation';

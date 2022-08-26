@@ -55,4 +55,13 @@ export default StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
   },
+  loaderContainer: {
+    borderRadius: 30,
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: 'white',
+    fontSize: 22,
+    textAlign: 'center',
+  },
 });
