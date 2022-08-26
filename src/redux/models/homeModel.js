@@ -290,6 +290,7 @@ export const homeModel = {
       try {
         const {lastQuestion, isNoPressed} = requestBody || {};
         if (!(await isNetworkAvailable()) && !isEmpty(lastQuestion)) {
+          Alert.alert('', 'No internet connection');
           return;
         }
         dispatch.authModel.setIsLoading(true);
