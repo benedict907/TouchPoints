@@ -33,7 +33,7 @@ const invokeNetworkRequest = async (
   } = getState();
 
   try {
-    console.log('REQUEST', {url, method, headers, params});
+    // console.log('REQUEST', {url, method, headers, params});
     let response = null;
     if (method !== 'GET') {
       response = await fetch(url, {
@@ -71,6 +71,7 @@ const invokeNetworkRequest = async (
         Alert.alert('', 'No Internet Connection');
       } else {
         Alert.alert('', 'Server Error');
+        completion(null, '');
         const error = err.json ? await err.json() : err;
         const {message} = error;
       }
@@ -166,15 +167,24 @@ const multipartFileUploadRequest = async (
   NetInfo.fetch().then(async net_state => {
     if (net_state.isConnected) {
       try {
+        const {
+          authModel: {
+            userData: {access_token},
+          },
+        } = getState();
+
         console.log('REQUEST', formData);
         const apiUrl = API_URL + endPoint;
         const response = await fetch(apiUrl, {
           method: methodType,
           body: formData,
           headers: {
+            Authorization: 'Bearer ' + access_token,
             'Content-Type': 'multipart/form-data',
+            Accept: 'application/json',
           },
         });
+        console.log('sdsdfsdf', response);
         if (response) {
           // let jsonRespose = await response.json();
 
@@ -184,19 +194,22 @@ const multipartFileUploadRequest = async (
             console.log('RESPONSE', jsonResponse);
             completion && completion(null, jsonResponse);
           } else {
-            completion && completion(response, null);
+            const error = response.json ? await response.json() : response;
+            const {message} = error;
+            completion && completion(error, null);
           }
           return response;
         } else {
+          console.log('Error', 'no response');
           // const exception = serverException('');
           // completion && completion(exception, null);
           // return exception;
         }
       } catch (err) {
-        console.log('Error', err);
+        console.log('Error', JSON.stringify(err));
         const exception = {
           key: 500,
-          message: 'No Internet Connection',
+          message: JSON.stringify(err),
         };
         completion && completion(exception, null);
       }
@@ -205,7 +218,7 @@ const multipartFileUploadRequest = async (
       Alert.alert('', 'No Internet Connection');
       const exception = {
         key: 500,
-        message: 'No Internet Connection',
+        message: 'Nosdfsd Internet Connection',
       };
       completion && completion(exception, null);
     }

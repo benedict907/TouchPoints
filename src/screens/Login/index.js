@@ -9,8 +9,8 @@ import {PLACEHOLDER_COLOR} from '../../constants/colors';
 import CustomButton from '../../components/common/CustomButton';
 import {HOME_STACK} from '../../constants';
 const LoginScreen = ({navigation, login}) => {
-  const [mobile, setMobile] = useState('');
-  const [password, setPassword] = useState('');
+  const [mobile, setMobile] = useState('9747389586');
+  const [password, setPassword] = useState('123456');
   return (
     <View style={styles.mainContainer}>
       {/* <Text style={styles.headerText}>Login</Text> */}

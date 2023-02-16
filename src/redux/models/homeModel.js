@@ -14,6 +14,7 @@ import {
   getHeadersWithToken,
   getRequest,
   postRequest,
+  multipartFileUploadRequest,
 } from '../../utils/API';
 import {getConvertedDate} from '../../utils/helpers';
 import {uploadPhoto} from '../../utils/aws';
@@ -200,23 +201,23 @@ export const homeModel = {
           null,
           (_err, response) => {
             const currentVersion = getVersion();
-            if (currentVersion !== response.data.current_app_version) {
-              Alert.alert(
-                '',
-                'Please update app to the newest version',
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      Linking.openURL(
-                        'https://play.google.com/store/apps/details?id=com.questionsapp',
-                      );
-                    },
-                  },
-                ],
-                {cancelable: false},
-              );
-            }
+            // if (currentVersion !== response.data.current_app_version) {
+            //   Alert.alert(
+            //     '',
+            //     'Please update app to the newest version',
+            //     [
+            //       {
+            //         text: 'OK',
+            //         onPress: () => {
+            //           Linking.openURL(
+            //             'https://play.google.com/store/apps/details?id=com.questionsapp',
+            //           );
+            //         },
+            //       },
+            //     ],
+            //     {cancelable: false},
+            //   );
+            // }
           },
         );
       } catch (error) {
@@ -294,7 +295,6 @@ export const homeModel = {
           return;
         }
         dispatch.authModel.setIsLoading(true);
-        console.log('reqq', requestBody);
         const {
           homeModel: {
             subscriberId,
@@ -327,6 +327,9 @@ export const homeModel = {
           let data = models.homeModel.requestData;
 
           if (isNoPressed) {
+            // navigateAndSimpleReset(LOGIN_SCREEN);
+            // dispatch.homeModel.setCurrentLayout(language);
+
             data.push({
               subscriber_id: subscriberId,
               page: body.page,
@@ -339,11 +342,13 @@ export const homeModel = {
                   : [],
             });
           } else {
+            let formdata = new FormData();
             const tempKey = data[length - 1].page;
             data[length - 1] = {
               subscriber_id: subscriberId,
               page: tempKey,
               location: models.homeModel.address,
+              file: formdata.append('file', await uploadPhoto(body.file)),
               time: getConvertedDate(new Date()),
               option: models.homeModel.subRequestData.length > 0 ? 1 : 0,
               option_values:
@@ -352,56 +357,143 @@ export const homeModel = {
                   : [],
             };
           }
+          let mainFormData = new FormData();
+          mainFormData.append('subscriber_id', subscriberId);
+          // mainFormData.append('mdu_question1_page', 'mdu_question1');
+          // mainFormData.append('mdu_question1_location', '');
+          // mainFormData.append('mdu_question1_time', '');
+          // mainFormData.append(
+          //   'mdu_question1_file',
+          //   await uploadPhoto(data[0].file),
+          // );
 
-          const mappedArray = await Promise.all(
+          await Promise.all(
             data.map(async item => {
               console.log('itemm', item);
-              if (item.file && item.file !== '') {
-                item.file = await uploadPhoto(item.file);
-              }
+              // let formdata = new FormData();
 
-              if (item.option === 1) {
-                item.option_values = await Promise.all(
-                  item.option_values.map(async values => {
-                    if (values.file) {
-                      values.file = await uploadPhoto(values.file);
-                    }
-                    return values;
-                  }),
+              mainFormData.append(`${item.page}_page`, item.page);
+              mainFormData.append(
+                `${item.page}_location`,
+                models.homeModel.address,
+              );
+              mainFormData.append(
+                `${item.page}_time`,
+                getConvertedDate(new Date()),
+              );
+
+              if (item.file && item.file !== '') {
+                mainFormData.append(
+                  `${item.page}_file`,
+                  await uploadPhoto(item.file),
                 );
               }
+              // if (item.option === 1) {
+              //   item.option_values = await Promise.all(
+              //     item.option_values.map(async values => {
+              //       if (values.file) {
+              //         formData.append(values.page, await uploadPhoto(values.file));
+              //         // values.file = await uploadPhoto(values.file);
+              //       }
+              //       // return values;
+              //     }),
+              //   );
+              // }
 
-              return item;
+              // mainFormData.append(item.page, JSON.stringify(formdata));
             }),
           );
 
-          console.log('requestData!!!', mappedArray);
+          // const hgch = await uploadPhoto(data[0].file);
+          // let formData = new FormData();
+          // formData.append('subscriber_id', subscriberId);
+          // await Promise.all(
+          //   data.map(async item => {
+          //     if (item.file && item.file !== '') {
+          //       formData.append(item.page, await uploadPhoto(item.file));
+          //       // item.file = await uploadPhoto(item.file);
+          //     }
 
-          await postRequest(
+          //     // console.log('itemm', formData);
+          //     if (item.option === 1) {
+          //       item.option_values = await Promise.all(
+          //         item.option_values.map(async values => {
+          //           if (values.file) {
+          //             formData.append(
+          //               values.page,
+          //               await uploadPhoto(values.file),
+          //             );
+          //             // values.file = await uploadPhoto(values.file);
+          //           }
+          //           // return values;
+          //         }),
+          //       );
+          //     }
+
+          //     return formData;
+          //   }),
+          // );
+
+          console.log('requestData!!!', JSON.stringify(mainFormData));
+
+          await multipartFileUploadRequest(
+            'POST',
+            mainFormData,
             '/saveInnerQuestions',
-            getHeadersWithToken(),
-            JSON.stringify(mappedArray),
             (error, response) => {
-              const {
-                response_code,
-                data: {ref_number},
-                errors,
-              } = response;
+              console.log('multipart', {error, response});
+              if (response) {
+                const {
+                  response_code,
+                  data: {ref_number},
+                  errors,
+                } = response;
 
-              if (response_code === '1') {
-                dispatch.authModel.setIsLoading(false);
-                dispatch.homeModel.setReferenceNumber(ref_number);
-                dispatch.homeModel.setCurrentLayout(thankyouLayout);
-                dispatch.homeModel.setSelectedQuestion(0);
-              } else if (response_code === '-1') {
-                navigateAndSimpleReset(LOGIN_SCREEN);
-                dispatch.homeModel.setCurrentLayout(language);
+                if (response_code === '1') {
+                  dispatch.authModel.setIsLoading(false);
+                  dispatch.homeModel.setReferenceNumber(ref_number);
+                  dispatch.homeModel.setCurrentLayout(thankyouLayout);
+                  dispatch.homeModel.setSelectedQuestion(0);
+                } else if (response_code === '-1') {
+                  navigateAndSimpleReset(LOGIN_SCREEN);
+                  dispatch.homeModel.setCurrentLayout(language);
+                } else if (error) {
+                  Alert.alert('', errors);
+                  dispatch.authModel.setIsLoading(false);
+                }
+
+                // );
               } else if (error) {
-                Alert.alert('', errors);
-                dispatch.authModel.setIsLoading(false);
+                // onFailure(error);
               }
             },
           );
+
+          // await postRequest(
+          //   '/saveInnerQuestions',
+          //   getHeadersWithToken(),
+          //   JSON.stringify(hgch),
+          //   (error, response) => {
+          //     const {
+          //       response_code,
+          //       data: {ref_number},
+          //       errors,
+          //     } = response;
+
+          //     if (response_code === '1') {
+          //       dispatch.authModel.setIsLoading(false);
+          //       dispatch.homeModel.setReferenceNumber(ref_number);
+          //       dispatch.homeModel.setCurrentLayout(thankyouLayout);
+          //       dispatch.homeModel.setSelectedQuestion(0);
+          //     } else if (response_code === '-1') {
+          //       navigateAndSimpleReset(LOGIN_SCREEN);
+          //       dispatch.homeModel.setCurrentLayout(language);
+          //     } else if (error) {
+          //       Alert.alert('', errors);
+          //       dispatch.authModel.setIsLoading(false);
+          //     }
+          //   },
+          // );
         } else {
           dispatch.authModel.setIsLoading(false);
 
@@ -413,6 +505,11 @@ export const homeModel = {
         }
         // });
       } catch (error) {
+        dispatch.authModel.setIsLoading(false);
+        dispatch.homeModel.setReferenceNumber('ref_number');
+        dispatch.homeModel.setCurrentLayout(thankyouLayout);
+        dispatch.homeModel.setSelectedQuestion(0);
+
         dispatch.authModel.setIsLoading(false);
         console.log(error);
         crashlytics().log(`saveInnerQuestions  ${error}`);

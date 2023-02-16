@@ -1,4 +1,4 @@
-import ImageResizer from 'react-native-image-resizer';
+import ImageResizer from '@bam.tech/react-native-image-resizer';
 import {Alert} from 'react-native';
 
 const compressImage = (image, callback) => {

@@ -28,6 +28,7 @@ const captureImage = async (camera, navigation, updateImage) => {
       compressionMethod: 'auto',
       minimumFileSizeForCompress: 1,
     }).then(res => {
+      console.log('asda', res);
       updateImage(res);
       navigation.goBack();
     });

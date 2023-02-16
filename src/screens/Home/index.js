@@ -143,7 +143,7 @@ const Home = ({
       );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log('You can use the location');
-        getLocation();
+        // getLocation();
       } else {
         console.log('location permission denied');
         Alert.alert('', 'Permisison is denied');
