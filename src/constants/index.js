@@ -30,7 +30,7 @@ export const REFERENCE_WINDOW_DIMENSIONS = {height: 667, width: 375};
 export const API_FAILURE = '0';
 export const CURRENCY_INDIAN = '₹';
 export const CURRENCY_UAE = 'AED';
-export const API_KEY = 'AIzaSyDUGE5N3XI-Vx2tH1n39XFw2fvI9JR-vjg';
+export const API_KEY = 'AIzaSyCOMFkIEMMRUAkKr71X-L3y7n0X3d7J4Rs';
 export const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 export const ANDROID_OS = 'android';
 export const NO_MEDIA = '/.nomedia';
@@ -92,7 +92,7 @@ export const mduQuestions = [
     questionHeaderTamil: 'ஸ்விட்ச் என்ட் டயிட்னஸ்  போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_1_3,
     capturedImage: '',
-    isVideo: true,
+    isVideo: false,
   },
   {
     id: 4,
@@ -116,7 +116,7 @@ export const mduQuestions = [
       'செட் டாப் பாக்ஸ்  என்ட்  டயிட்னஸ் போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_1_6,
     capturedImage: '',
-    isVideo: true,
+    isVideo: false,
   },
   {
     id: 7,
@@ -188,7 +188,7 @@ export const oduQuestions = [
     questionHeaderTamil: 'LNBF என்ட் டயிட்னஸ்  போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_7,
     capturedImage: '',
-    isVideo: true,
+    isVideo: false,
   },
   {
     id: 8,
@@ -226,7 +226,7 @@ export const oduQuestions = [
       'செட் டாப் பாக்ஸ்  என்ட்  டயிட்னஸ் போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_12,
     capturedImage: '',
-    isVideo: true,
+    isVideo: false,
   },
   {
     id: 13,
@@ -298,7 +298,7 @@ export const nonOduQuestions = [
     questionHeaderTamil: 'LNBF என்ட் டயிட்னஸ்  போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_7,
     capturedImage: '',
-    isVideo: true,
+    isVideo: false,
   },
   {
     id: 8,
@@ -336,7 +336,7 @@ export const nonOduQuestions = [
       'செட் டாப் பாக்ஸ்  என்ட்  டயிட்னஸ் போட்டோவை ஷேர் செய்யவும',
     image: QUESTION_3_12,
     capturedImage: '',
-    isVideo: true,
+    isVideo: false,
   },
   {
     id: 13,

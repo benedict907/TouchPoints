@@ -184,7 +184,7 @@ const multipartFileUploadRequest = async (
             Accept: 'application/json',
           },
         });
-        console.log('sdsdfsdf', response);
+
         if (response) {
           // let jsonRespose = await response.json();
 

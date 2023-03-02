@@ -5,50 +5,58 @@
  * @param {string} id
  * @returns {Promise<string>} JSON
  */
-
+import AWS from 'aws-sdk';
 import {getState} from '../redux';
 import mime from 'mime';
-import {RNS3} from 'react-native-aws3';
 
 export const uploadPhoto = async uri => {
   if (uri === '') {
     return;
   }
-
-  // const {
-  //   homeModel: {subscriberId, credentials},
-  // } = getState();
   const file = {
     uri: uri,
     name: uri.split('/').pop(),
     type: mime.getType(uri),
   };
+  const {
+    homeModel: {subscriberId},
+  } = getState();
 
-  return file;
-  // const {
-  //   DO_SPACES_BUCKET,
-  //   DO_SPACES_ENDPOINT,
-  //   DO_SPACES_KEY,
-  //   DO_SPACES_SECRET,
-  // } = credentials;
+  const s3Client = new AWS.S3({
+    endpoint: 'https://sgp1.digitaloceanspaces.com',
+    region: 'sgp1',
+    credentials: {
+      accessKeyId: 'U7Y76LQLLELZKCCDYG7X',
+      secretAccessKey: 'Fx1Mh0k1zwi5N44qQtBnqmvtUIbUUVqeOk44n2G7Vq8',
+    },
+  });
+  try {
+    fetch(uri)
+      .then(function (response) {
+        return response.blob();
+      })
+      .then(function (blob) {
+        s3Client.putObject(
+          {
+            Bucket: `s4touchpoint/S4touchpoint/${subscriberId}`,
+            Key: file.name,
+            Body: blob,
+            ACL: 'public-read',
+          },
+          async res => {
+            console.log('done', res);
+            return uri.split('/').pop();
+          },
+        );
+        // here the image is a blob
+      })
+      .catch(err => {
+        console.log('bloberror', err);
+      });
 
-  // // {"data": {"DO_SPACES_BUCKET": "S4touchpoint", "DO_SPACES_ENDPOINT": "https://s4touchpoint.sgp1.digitaloceanspaces.com", "DO_SPACES_KEY": "U7Y76LQLLELZKCCDYG7X", "DO_SPACES_REGION": "sgp1", "DO_SPACES_SECRET": "Fx1Mh0k1zwi5N44qQtBnqmvtUIbUUVqeOk44n2G7Vq8", "OFF_LINE_SUBSCRIPTION": false}, "errors": [], "response_code": 1}
-
-  // const options = {
-  //   keyPrefix: `${DO_SPACES_BUCKET}/${subscriberId}/`,
-  //   bucket: 's4touchpoint',
-  //   region: 'us-east-1',
-  //   accessKey: DO_SPACES_KEY,
-  //   secretKey: DO_SPACES_SECRET,
-  //   awsUrl: DO_SPACES_ENDPOINT,
-  //   successActionStatus: 201,
-  // };
-  // try {
-  //   const response = await RNS3.put(file, options);
-  //   console.log('awsresss', response);
-  //   return response.body.postResponse.location;
-  // } catch (error) {
-  //   console.log('awseror', error);
-  //   return error;
-  // }
+    //    })
+    //.catch(err => doSomethingWith(err));
+  } catch (err) {
+    console.log('error', err);
+  }
 };

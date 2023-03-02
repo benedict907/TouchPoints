@@ -7,7 +7,6 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import moment from 'moment';
 import {RNCamera} from 'react-native-camera';
 import styles from './styles';
 import RecordingButton from '../../components/RecordingButton';
@@ -18,7 +17,8 @@ import {
   FLASH as Flash,
 } from '../../constants/assets';
 import {changeCameraType, toggleFlash} from '../ImageCaptureScreen/helpers';
-import {Video} from 'react-native-compressor';
+
+import RNVideoHelper from 'react-native-video-helper';
 
 import {connect} from 'react-redux';
 import Loader from '../../components/common/Loader';
@@ -69,30 +69,33 @@ const VideoCaptureScreen = ({
         .recordAsync(recordOptions)
         .then(async data => {
           setLoading(true);
-          await Video.compress(
-            data.uri,
-            {
-              compressionMethod: 'auto',
-              minimumFileSizeForCompress: 1,
-            },
-            progress => {
-              console.log({compression: progress});
-            },
-          ).then(async compressedFileUrl => {
-            setLoading(false);
 
-            if (compressedFileUrl.replace('file://', 'file:///') !== '') {
-              updateImage(compressedFileUrl.replace('file://', 'file:///'));
-              navigation.goBack();
-            } else {
-              Alert.alert(
-                '',
-                'an error occured while compressing..please try again.',
-              );
-            }
+          const sourceUri = data.uri;
 
-            // do something with compressed video file
-          });
+          RNVideoHelper.compress(sourceUri, {
+            startTime: 0, // optional, in seconds, defaults to 0
+            endTime: 2, //  optional, in seconds, defaults to video duration
+            quality: 'low', // default low, can be medium or high
+            defaultOrientation: 0, // By default is 0, some devices not save this property in metadata. Can be between 0 - 360
+          })
+            .progress(value => {
+              console.warn('progress', value); // Int with progress value from 0 to 1
+            })
+            .then(compressedUri => {
+              console.warn('compressedUri', compressedUri); // String with path to temporary compressed video
+              setLoading(false);
+
+              if (compressedUri.replace('file://', 'file:///') !== '') {
+                updateImage(compressedUri.replace('file://', 'file:///'));
+                navigation.goBack();
+              } else {
+                Alert.alert(
+                  '',
+                  'an error occured while compressing..please try again.',
+                );
+              }
+            });
+
           setRecorder(true);
         })
         .catch(err => console.error(err));

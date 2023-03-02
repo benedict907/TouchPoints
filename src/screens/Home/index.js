@@ -43,7 +43,7 @@ const Home = ({
     questions,
     thankyouLayout,
   } = screenTypes;
-  console.log('currre!!', currentLayout);
+
   useFocusEffect(
     useCallback(() => {
       if (currentLayout === language) {
@@ -143,7 +143,7 @@ const Home = ({
       );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log('You can use the location');
-        // getLocation();
+        getLocation();
       } else {
         console.log('location permission denied');
         Alert.alert('', 'Permisison is denied');
